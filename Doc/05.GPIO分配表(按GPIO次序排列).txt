@@ -1,0 +1,156 @@
+/*
+*********************************************************************************************************
+*
+*	                    【安富莱】STM32-V5开发板引脚分配表(按GPIO次序排列)
+*
+*********************************************************************************************************
+*/
+【按GPIO次序排列, 一共140个GPIO】
+    PA0-WKUP/ADC123_IN0                         ADC输入
+    PA1/ETH_RMII_RX_CLK                         以太网RMII接口RX_CLK
+    PA2/USART2/ETH_MDIO                         以太网RMII接口MDIO/串口2发送
+    PA3/USART2_RX                               串口2接收，可外接GPS模块
+    PA4/NRF905_TX_EN/NRF24L01_CE/DAC1_OUT       nRF905发射使能/nRF24L01使能/DAC输出
+    PA5/NRF905_TRX_CE/VS1053_XDCS/DAC2_OUT      nRF905发送和接收模式选择/DAC输出
+    PA6/DCMI_PIXCLK                             摄像头像素时钟
+    PA7/RMII_CRS_DV                             以太网RMII接口CSR_DV
+    PA8/IR_TX                                   红外遥控发射管
+    PA9/USART1_TX                               串口1发送，和PC机串口通信
+    PA10/USART1_RX                              串口1接收，和PC机串口通信
+    PA11/OTG_FS_DM                              全速(12Mbps)USB接口数据线D-， 接PC机
+    PA12/OTG_FS_DP                              全速(12Mbps)USB接口数据线D+
+    PA13/JTMS-SWDIO                             SWD调试接口数据线
+    PA14/JTCK-SWCLK                             SWD调试接口时钟线
+    PA15/DM9000_INT                             以太网芯片DM9000AEP中断
+
+    PB0/IR_RX                                   红外遥控接收管
+    PB1/1-WIRE                                  1-Wire总线, 可外接DS18B20、DTH11等传感器
+    PB2-BOOT1/RS485_TXEN                        RS485发送使能
+    PB3/SPI3_SCK                                SPI接口时钟线
+    PB4/SPI3_MISO                               SPI接口MISO (主机输入,从机输出)
+    PB5/SPI3_MOSI                               SPI接口MOSI (主机输出,从机输入)
+    PB6/CAN2_TX/NRF905_PWR_UP                   CAN2接口发送/nRF905上电控制
+    PB7/GPRS_RESET                              GPRS模块复位
+    PB8/NRF905_DR/VS1053_DREQ                   nRF905数据就绪/VS1053数据请求
+    PB9/NRF905_AM                               nRF905地址匹配
+    PB10/USART3_TX                              串口3发送，接RS485收发芯片
+    PB11/USART3_RX                              串口3接收，接RS485收发芯片
+    PB12/I2S2_WS/CAN2_RX                        I2S数字音频接口声道选择信号/CAN2接收
+    PB13/I2S2_CK/CAN2_TX/ETH_RMII_TXD1          I2S数字音频接口时钟信号/CAN2发送/以太网RMII接口TXD1
+    PB14/OTG_HS_DM                              (全速)USB接口数据线D-, 接U盘
+    PB15/OTG_HS_DP                              (全速)USB接口数据线D+
+
+    PC0/ADC123_IN10                             ADC输入
+    PC1/ETH_MDC                                 以太网MDC
+    PC2/NRF905_CSN/VS1053_XCS                   nRF905片选/VS1053片选
+    PC3/I2S2_SD                                 I2S数字音频接口数据线（放音用）
+    PC4/ETH_RMII_RX_D0                          以太网RMII接口接收数据线D0
+    PC5/ETH_RMII_RX_D1                          以太网RMII接口接收数据线D1
+    PC6/I2S2_MCK                                I2S数字音频接口时钟源
+    PC7/USART6_RX                               串口6接收，接GPRS模块
+    PC8/SDIO_D0                                 SDIO数据线D0
+    PC9/SDIO_D1                                 SDIO数据线D1
+    PC10/SDIO_D2                                SDIO数据线D2
+    PC11/SDIO_D3                                SDIO数据线D3
+    PC12/SDIO_CK                                SDIO时钟
+    PC13/KEY2                                   独立按键KEY2
+    PC14-OSC32_IN                               32768Hz时钟输入
+    PC15-OSC32_OUT                              32768Hz时钟输出
+
+    PD0/FSMC_D2                                 FSMC数据总线D2
+    PD1/FSMC_D3                                 FSMC数据总线D3
+    PD2/SDIO_CMD                                SDIO命令
+    PD3/LCD_BUSY                                RA8875忙
+    PD4/FSMC_NOE                                FSMC控制总线读信号（N表示低有效，OE = Output Enable）
+    PD5/FSMC_NWE                                FSMC控制总线写信号（N表示低有效，WE = Write Enable）
+    PD6/FSMC_NWAIT                              FSMC总线等待信号
+    PD7/FSMC_NCE2                               FSMC片选NCE2
+    PD8/FSMC_D13                                FSMC数据总线D13
+    PD9/FSMC_D14                                FSMC数据总线D14
+    PD10/FSMC_D15                               FSMC数据总线D15
+    PD11/FSMC_CLE/FSMC_A16                      FSMC地址总线A16,和NAND Flash CLE复用
+    PD12/FSMC_ALE/FSMC_A17                      FSMC地址总线A17,和NAND Flash ALE复用
+    PD13/FSMC_A18                               FSMC地址总线A18
+    PD14/FSMC_D0                                FSMC数据总线D0
+    PD15/FSMC_D1                                FSMC数据总线D1
+
+    PE0/FSMC_NBL0                               FSMC字节选择信号，用于SRAM
+    PE1/FSMC_NBL1                               FSMC字节选择信号，用于SRAM
+    PE2/FSMC_A23/SD_DETECT                      SD卡插入检测
+    PE3/FSMC_A19                                FSMC地址总线A19
+    PE4/FSMC_A20                                FSMC地址总线A20
+    PE5/FSMC_A21                                FSMC地址总线A21
+    PE6/FSMC_A22                                FSMC地址总线A22
+    PE7/FSMC_D4                                 FSMC数据总线D4
+    PE8/FSMC_D5                                 FSMC数据总线D5
+    PE9/FSMC_D6                                 FSMC数据总线D6
+    PE10/FSMC_D7                                FSMC数据总线D7
+    PE11/FSMC_D8                                FSMC数据总线D8
+    PE12/FSMC_D9                                FSMC数据总线D9
+    PE13/FSMC_D10                               FSMC数据总线D10
+    PE14/FSMC_D11                               FSMC数据总线D11
+    PE15/FSMC_D12                               FSMC数据总线D12
+
+    PF0/FSMC_A0                                 FSMC地址总线A0
+    PF1/FSMC_A1                                 FSMC地址总线A1
+    PF2/FSMC_A2                                 FSMC地址总线A2
+    PF3/FSMC_A3                                 FSMC地址总线A3
+    PF4/FSMC_A4                                 FSMC地址总线A4
+    PF5/FSMC_A5                                 FSMC地址总线A5
+    PF6/LCD_PWM                                 LCD背光控制（对于RA8875屏无用，背光由RA8875控制）
+    PF7/NRF24L01_CSN                            nRF24L01片选
+    PF8/SF_CS                                   串行Flash片选
+    PF9/ADC3_IN7                                ADC输入
+    PF10/ADC3_IN8                               ADC输入
+    PF11/JOY_L/PS2_DATA                         摇杆左键/PS2数据线
+    PF12/FSMC_A6                                FSMC地址总线A6
+    PF13/FSMC_A7                                FSMC地址总线A7
+    PF14/FSMC_A8                                FSMC地址总线A8
+    PF15/FSMC_A9                                FSMC地址总线A9
+
+    PG0/FSMC_A10                                FSMC地址总线A10
+    PG1/FSMC_A11                                FSMC地址总线A11
+    PG2/FSMC_A12                                FSMC地址总线A12
+    PG3/FSMC_A13                                FSMC地址总线A13
+    PG4/FSMC_A14                                FSMC地址总线A14
+    PG5/FSMC_A15                                FSMC地址总线A15
+    PG6/FSMC_INT2                               FSMC中断,可用于判忙
+    PG7/JOY_R/PS2_CLK                           摇杆右键/PS2时钟
+    PG8/USART6_RTS                              串口6请求发送数据
+    PG9/FSMC_NE2                                FSMC总线片选NE2
+    PG10/FSMC_NE3                               FSMC总线片选NE3
+    PG11/ETH_RMII_TX_EN                         以太网RMII接口TX_EN
+    PG12/FSMC_NE4                               FSMC总线片选NE4
+    PG13/FSMC_A24/ETH_RMII_TXD0                 以太网RMII接口数据发送D0
+    PG14/USART6_TX/ETH_RMII_TXD1                以太网RMII接口数据发送D1
+    PG15/USART6_CTS                             串口6清除发送请求CTS
+
+    PH0-OSC_IN                                  主时钟输入（外接25M晶振）
+    PH1-OSC_OUT                                 主时钟输出（外接25M晶振）
+    PH2/JOY_U                                   摇杆上键
+    PH3/JOY_D                                   摇杆下键
+    PH4/I2C2_SCL                                I2C总线时钟线
+    PH5/I2C2_SDA                                I2C总线数据线
+    PH6/MII_INT                                 以太网MII_INT
+    PH7/NRF24L01_IRQ                            nRF24L01中断
+    PH8/DCMI_HSYNC                              摄像头水平同步信号
+    PH9/DCMI_D0/AD7606_OS0                      摄像头数据线D0
+    PH10/DCMI_D1/AD7606_OS1                     摄像头数据线D1
+    PH11/DCMI_D2/AD7606_OS2                     摄像头数据线D2
+    PH12/DCMI_D3/AD7606_CONVST                  摄像头数据线D3
+    PH13/CAN1_TX                                CAN1发送
+    PH14/DCMI_D4/AD7606_RAGE                    摄像头数据线D4
+    PH15/JOY_OK                                 摇杆OK键
+
+    PI0/GPRS_TERM_ON                            GPRS模块开机信号
+    PI1/MPU-6050_INT                            陀螺仪中断
+    PI2/I2S2ext_SD                              I2S数字音频接口数据线（录音用）
+    PI3/TP_INT                                  触摸笔中断（RA8875中断）
+    PI4/DCMI_D5/AD7606_RESET                    摄像头数据线D5
+    PI5/DCMI_VSYNC                              摄像头垂直同步
+    PI6/DCMI_D6/AD7606_BUSY                     摄像头数据线D6
+    PI7/DCMI_D7/NRF905_CD                       摄像头数据线D7
+    PI8/KEY1                                    按键KEY1
+    PI9/CAN1_RX                                 CAN1接收
+    PI10/TP_NCS                                 触摸芯片的片选(RA8875屏无需SPI接口触摸芯片)
+    PI11/KEY3                                   按键KEY3
