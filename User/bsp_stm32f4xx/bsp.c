@@ -73,9 +73,9 @@ void bsp_Init(void)
 	bsp_InitI2C();
 	bsp_InitSPIBus();	   /* 配置SPI总线 */
   bsp_InitNRF();      /*初始化NRF24L01*/
+//	NRF_Check();
 //	bsp_FlashInit();    /*初始化串行FLASH芯片*/
 	bsp_ServoInit();    /*舵机初始化*/
-	
 	/* 挂载文件系统 */
 	result = f_mount(&fs, "0:/", 0);
   if( result == FR_NO_FILESYSTEM )//如果该磁盘没有被格式化为FatFS，则格式化它
@@ -203,8 +203,8 @@ void BSP_Tick_Init (void)
     cnts  = cpu_clk_freq / (CPU_INT32U)OS_TICKS_PER_SEC;        /* Determine nbr SysTick increments.                    */
 #endif
     
-//   OS_CPU_SysTickInit(cnts);                                 /* 这里默认的是最高优先级，根据实际情况修改             */
-	SysTick_Config(cnts);                                      /* 这里默认的是最低优先级                               */
+   OS_CPU_SysTickInit(cnts);                                 /* 这里默认的是最高优先级，根据实际情况修改             */
+//	SysTick_Config(cnts);                                      /* 这里默认的是最低优先级                               */
 }
 
 /*$PAGE*/

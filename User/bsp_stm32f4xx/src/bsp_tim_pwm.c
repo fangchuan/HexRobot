@@ -907,11 +907,16 @@ static void bsp_Servo_TIMConfig(void)
 	 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 		TIM_OCInitTypeDef          TIM_OCInitStructure;
 	  u16                       CCR_VAL = DefaultPWM;
+//	  u16                       PrescalerValue;
 	
 			RCC_APB1PeriphClockCmd( HIP_TIM_CLK | ANKLE_TIM_CLK, ENABLE);
-			 /* Time base configuration */
+			
+//	    /* Compute the prescaler value */
+//      PrescalerValue = (uint16_t) ((SystemCoreClock /2) / 1410000) - 1;
+			/* Time base configuration */
 			TIM_TimeBaseStructure.TIM_Period = TIMPeriod;
 			TIM_TimeBaseStructure.TIM_Prescaler = TIMAPB1_Prescaler;//27 - 1;
+//	    TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
 			TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 
@@ -963,10 +968,15 @@ static void bsp_Servo_TIMConfig(void)
 			/* TIMx enable counter */
 	    TIM_Cmd(ANKLE_TIM_1, ENABLE);
 			
+			
+			/*Enable  TIM1 and TIM9*/
 			RCC_APB2PeriphClockCmd( KNEE_TIM_CLK, ENABLE);
+//			/* Compute the prescaler value */
+//      PrescalerValue = (uint16_t) ((SystemCoreClock) / 705000) - 1;
 			/* Time base configuration */
 	    TIM_TimeBaseStructure.TIM_Period = TIMPeriod;
 			TIM_TimeBaseStructure.TIM_Prescaler = TIMAPB2_Prescaler;
+//      TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
 			TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 			TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;		/* TIM1 ∫Õ TIM8 ±ÿ–Î…Ë÷√ */	

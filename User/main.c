@@ -74,8 +74,8 @@
 static  OS_TCB   AppTaskStartTCB;
 static  CPU_STK  AppTaskStartStk[APP_CFG_TASK_START_STK_SIZE];
 
-//static  OS_TCB   AppTaskUpdateTCB;
-//static  CPU_STK  AppTaskUpdateStk[APP_CFG_TASK_UPDATE_STK_SIZE];
+static  OS_TCB   AppTaskNRFTCB;
+static  CPU_STK  AppTaskNRFStk[APP_CFG_TASK_NRF_STK_SIZE];
 
 static  OS_TCB   AppTaskCOMTCB;
 static  CPU_STK  AppTaskCOMStk[APP_CFG_TASK_COM_STK_SIZE];
@@ -86,12 +86,12 @@ static  CPU_STK  AppTaskUserIFStk[APP_CFG_TASK_USER_IF_STK_SIZE];
 //static  OS_TCB   AppTaskGUITCB;
 //static  CPU_STK  AppTaskGUIStk[APP_CFG_TASK_GUI_STK_SIZE];
 
-//static  OS_TCB   AppTaskGUIRefreshTCB;
-//static  CPU_STK  AppTaskGUIRefreshStk[APP_CFG_TASK_GUIRefresh_STK_SIZE];
+static  OS_TCB   AppTaskRobotTCB;
+static  CPU_STK  AppTaskRobotStk[APP_CFG_TASK_ROBOT_STK_SIZE];
 
-static  OS_SEM     	SEM_SYNCH;	   //用于同步
+static  OS_SEM     	SEM_NRFRX;	   //用于NRF接收数据
 
-
+static  _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
 /*
 *********************************************************************************************************
 *                                      函数声明
@@ -101,10 +101,10 @@ static void   AppTaskStart          (void     *p_arg);
 static void   AppTaskCreate         (void);
 static void   AppTaskUserIF         (void     *p_arg);
 //static void   AppTaskGUI            (void     *p_arg);
-//static void   AppTaskGUIRefresh     (void     *p_arg);
-static void   AppTaskCOM			(void 	  *p_arg);
+static void   AppTaskRobotControl   (void     *p_arg);
+static void   AppTaskCOM			      (void 	  *p_arg);
 static void   DispTaskInfo          (void);
-static void   AppObjCreate          (void);
+static void   AppTaskNrfReceiver    (void);
 
 
 /*
@@ -151,7 +151,46 @@ int main(void)
     
     return (0);
 }
+/*
+*********************************************************************************************************
+*	函 数 名: DispTaskInfo
+*	功能说明: 将uCOS-III任务信息通过串口打印出来
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+static void DispTaskInfo(void)
+{
+	OS_TCB      *p_tcb;	        /* 定义一个任务控制块指针, TCB = TASK CONTROL BLOCK */
+	float CPU;
+	CPU_SR_ALLOC();
 
+	CPU_CRITICAL_ENTER();
+	p_tcb = OSTaskDbgListPtr;
+	CPU_CRITICAL_EXIT();
+	
+	/* 打印标题 */
+	printf("===============================================================\r\n");
+	printf(" 优先级 使用栈 剩余栈 百分比 利用率   任务名\r\n");
+	printf("  Prio   Used  Free   Per    CPU     Taskname\r\n");
+
+	/* 遍历任务控制块列表(TCB list)，打印所有的任务的优先级和名称 */
+	while (p_tcb != (OS_TCB *)0) 
+	{
+		CPU = (float)p_tcb->CPUUsage / 100;
+		printf("   %2d  %5d  %5d   %02d%%   %5.2f%%   %s\r\n", 
+		p_tcb->Prio, 
+		p_tcb->StkUsed, 
+		p_tcb->StkFree, 
+		(p_tcb->StkUsed * 100) / (p_tcb->StkUsed + p_tcb->StkFree),
+		CPU,
+		p_tcb->NamePtr);		
+	 	
+		CPU_CRITICAL_ENTER();
+		p_tcb = p_tcb->DbgNextPtr;
+		CPU_CRITICAL_EXIT();
+	}
+}
 /*
 *********************************************************************************************************
 *	函 数 名: AppTaskStart
@@ -183,19 +222,15 @@ static  void  AppTaskStart (void *p_arg)
     
 	  /* 创建任务 */
     AppTaskCreate(); 
-	  AppObjCreate();
 
 }
-
-
-
 /*
 *********************************************************************************************************
 *	函 数 名: AppTaskCom
 *	功能说明: LED闪烁
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
-*	优 先 级: 4
+*	优 先 级: 5
 *********************************************************************************************************
 */
 static void AppTaskCOM(void *p_arg)
@@ -204,8 +239,9 @@ static void AppTaskCOM(void *p_arg)
 	 
 	while(1)
 	{
-		bsp_LedToggle(2);
-		BSP_OS_TimeDlyMs(100);	
+//		bsp_LedToggle(2);
+		DispTaskInfo();
+		BSP_OS_TimeDlyMs(5000);	
 	} 						  	 	       											   
 }
 
@@ -217,40 +253,123 @@ static void AppTaskCOM(void *p_arg)
 *             2. 按下K2按键进行截图，保存BMP图片到SD卡中
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
-*	优 先 级: 5
+*	优 先 级: 6
 *********************************************************************************************************
 */
 static void AppTaskUserIF(void *p_arg)
 {
 	uint8_t ucKeyCode;
-
+  OS_ERR        err;
 	(void)p_arg;	               /* 避免编译器报警 */
 
 	while (1) 
 	{   		
-		ucKeyCode = bsp_GetKey();
-		
-		if (ucKeyCode != KEY_NONE)
-		{
-			switch (ucKeyCode)
-			{
-				case KEY_DOWN_K1:			  /* K1键按下 打印任务执行情况 */
-					DispTaskInfo();	     
-					break;
-
-				case KEY_DOWN_K2:			  /* K2键按下 实现截图功能 */
-					BSP_OS_SemPost(&SEM_SYNCH);
-					break;
+				ucKeyCode = bsp_GetKey();
 				
-				default:                      /* 其他的键值不处理 */
-					break;
-			}
-		}
+				if (ucKeyCode != KEY_NONE)
+				{
+					switch (ucKeyCode)
+					{
+						case KEY_DOWN_K1:			  /* K1键按下 打印任务执行情况 */
+							DispTaskInfo();	     
+							break;
+
+						case KEY_DOWN_K2:			  /* K2键按下 实现连接功能 */
+							OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
+							break;
+						
+						default:                      /* 其他的键值不处理 */
+							break;
+					}
+				}
 	
         BSP_OS_TimeDlyMs(20);	   
 	}
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: AppTaskNrfReceiver
+*	功能说明: 创建与NRF2401通讯的任务
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+static  void  AppTaskNrfReceiver (void)
+{
+    OS_ERR   err;
+	  u8    status;
+	  NRF_RX_Mode();
+    while(1)
+		{
+				OSSemPend(&SEM_NRFRX, 0, OS_OPT_PEND_BLOCKING,(CPU_TS*)0, &err);
+			
+				status = NRF_Rx_Dat((u8*)&nrf_receiver_buffer);
+			    /*判断接收状态*/
+          if(status == RX_DR)
+
+            {
+                if(nrf_receiver_buffer.car_speed == NRF_ROCKER_FORWARD ||
+                        nrf_receiver_buffer.key_value  == NRF_KEY_FORWARD ||
+                        nrf_receiver_buffer.Y_angle < -NRF_EULER_THRE)
+                    {
+//												Go_Straight();
+										}
+                if(nrf_receiver_buffer.car_speed == NRF_ROCKER_BACKWARD ||
+                        nrf_receiver_buffer.key_value  == NRF_KEY_BACKWARD ||
+                        nrf_receiver_buffer.Y_angle > NRF_EULER_THRE)
+                    {
+//												Go_Back();
+										}
+                if(nrf_receiver_buffer.car_angle == NRF_ROCKER_LEFT ||
+                        nrf_receiver_buffer.key_value  == NRF_KEY_LEFT ||
+                        nrf_receiver_buffer.X_angle > NRF_EULER_THRE)
+                    {
+//												Turn_Left();
+										}
+                if(nrf_receiver_buffer.car_angle == NRF_ROCKER_RIGHT ||
+                        nrf_receiver_buffer.key_value == NRF_KEY_RIGHT ||
+                        nrf_receiver_buffer.X_angle < -NRF_EULER_THRE)
+                    {
+//												Turn_Right();
+										}
+                if(nrf_receiver_buffer.car_speed == NRF_STOP && 
+									 nrf_receiver_buffer.car_angle == NRF_STOP && 
+								   nrf_receiver_buffer.key_value == NRF_STOP && 
+								   fabs(nrf_receiver_buffer.X_angle) < NRF_EULER_SAFE && 
+								   fabs(nrf_receiver_buffer.Y_angle) < NRF_EULER_SAFE )
+                    {
+//												Stop();
+										}
+
+            }
+			  OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
+		}			
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: AppTaskRobotControl
+*	功能说明: 机器人运动控制任务
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*	优 先 级: 4
+*********************************************************************************************************
+*/
+static void AppTaskRobotControl(void *p_arg)
+{	
+	OS_ERR   err;
+	(void)p_arg;
+	 
+	/*复位动作 2s*/
+	 Position_Reset(5);
+	/**/
+	 Stand_Up(8);
+	 while(1)
+	{
+	  	OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
+	} 						  	 	       											   
+}
 
 /*
 *********************************************************************************************************
@@ -262,99 +381,69 @@ static void AppTaskUserIF(void *p_arg)
 */
 static  void  AppTaskCreate (void)
 {
-	OS_ERR      err;
-	
+			OS_ERR      err;
+			
 
-
-	/**************创建COM任务*********************/
-	OSTaskCreate((OS_TCB       *)&AppTaskCOMTCB,            
-                 (CPU_CHAR     *)"App Task COM",
-                 (OS_TASK_PTR   )AppTaskCOM, 
-                 (void         *)0,
-                 (OS_PRIO       )APP_CFG_TASK_COM_PRIO,
-                 (CPU_STK      *)&AppTaskCOMStk[0],
-                 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE / 10,
-                 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE,
-                 (OS_MSG_QTY    )0,
-                 (OS_TICK       )0,
-                 (void         *)0,
-                 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-                 (OS_ERR       *)&err);
-	
-	/**************创建USER IF任务*********************/
-	OSTaskCreate((OS_TCB       *)&AppTaskUserIFTCB,             
-                 (CPU_CHAR     *)"App Task UserIF",
-                 (OS_TASK_PTR   )AppTaskUserIF, 
-                 (void         *)0,
-                 (OS_PRIO       )APP_CFG_TASK_USER_IF_PRIO,
-                 (CPU_STK      *)&AppTaskUserIFStk[0],
-                 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE / 10,
-                 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE,
-                 (OS_MSG_QTY    )0,
-                 (OS_TICK       )0,
-                 (void         *)0,
-                 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-                 (OS_ERR       *)&err);
- 
+			OSSemCreate(&SEM_NRFRX, "SEM_NRFReceiver", 0, &err);
+			/**************创建COM任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskCOMTCB,            
+										 (CPU_CHAR     *)"App Task COM",
+										 (OS_TASK_PTR   )AppTaskCOM, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_COM_PRIO,
+										 (CPU_STK      *)&AppTaskCOMStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )0,
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
+			
+			/**************创建USER IF任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskUserIFTCB,             
+										 (CPU_CHAR     *)"App Task UserIF",
+										 (OS_TASK_PTR   )AppTaskUserIF, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_USER_IF_PRIO,
+										 (CPU_STK      *)&AppTaskUserIFStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )0,
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
+										 
+			/**************创建NRF接收任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskNRFTCB,             
+										 (CPU_CHAR     *)"App Task NRFReceiver",
+										 (OS_TASK_PTR   )AppTaskNrfReceiver, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_NRF_PRIO,
+										 (CPU_STK      *)&AppTaskNRFStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_NRF_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_NRF_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )0,
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
+ 			/**************创建机器人运动控制任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskRobotTCB,             
+										 (CPU_CHAR     *)"App Task RobotControl",
+										 (OS_TASK_PTR   )AppTaskRobotControl, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_ROBOT_PRIO,
+										 (CPU_STK      *)&AppTaskRobotStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_ROBOT_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_ROBOT_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )0,
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: AppObjCreate
-*	功能说明: 创建任务通讯
-*	形    参: p_arg 是在创建该任务时传递的形参
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-static  void  AppObjCreate (void)
-{
-
-	/* 创建同步信号量 */ 
-   	BSP_OS_SemCreate(&SEM_SYNCH,
-					  0,	
-					 (CPU_CHAR *)"SEM_SYNCH");				 
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: DispTaskInfo
-*	功能说明: 将uCOS-III任务信息通过串口打印出来
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-static void DispTaskInfo(void)
-{
-	OS_TCB      *p_tcb;	        /* 定义一个任务控制块指针, TCB = TASK CONTROL BLOCK */
-	float CPU;
-	CPU_SR_ALLOC();
-
-	CPU_CRITICAL_ENTER();
-    p_tcb = OSTaskDbgListPtr;
-    CPU_CRITICAL_EXIT();
-	
-	/* 打印标题 */
-	/* 打印标题 */
-	printf("===============================================================\r\n");
-	printf(" 优先级 使用栈 剩余栈 百分比 利用率   任务名\r\n");
-	printf("  Prio   Used  Free   Per    CPU     Taskname\r\n");
-
-	/* 遍历任务控制块列表(TCB list)，打印所有的任务的优先级和名称 */
-	while (p_tcb != (OS_TCB *)0) 
-	{
-		CPU = (float)p_tcb->CPUUsage / 100;
-		printf("   %2d  %5d  %5d   %02d%%   %5.2f%%   %s\r\n", 
-		p_tcb->Prio, 
-		p_tcb->StkUsed, 
-		p_tcb->StkFree, 
-		(p_tcb->StkUsed * 100) / (p_tcb->StkUsed + p_tcb->StkFree),
-		CPU,
-		p_tcb->NamePtr);		
-	 	
-		CPU_CRITICAL_ENTER();
-        p_tcb = p_tcb->DbgNextPtr;
-        CPU_CRITICAL_EXIT();
-	}
-}
 
 /***************************** 阿波罗科技 www.apollorobot.com (END OF FILE) *********************************/

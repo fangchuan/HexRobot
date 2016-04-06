@@ -103,7 +103,7 @@ ANKLE6:PD13,TIM4_CH2
 #define  TIMAPB1_Prescaler     83
 #define  TIMAPB2_Prescaler     167
 #define  TIMPeriod             19999
-#define  DefaultPWM         1500
+#define  DefaultPWM            1500
 
 void bsp_SetTIMOutPWM(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, TIM_TypeDef* TIMx, uint8_t _ucChannel,
 	 uint32_t _ulFreq, uint32_t _ulDutyCycle);

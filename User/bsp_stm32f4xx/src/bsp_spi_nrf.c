@@ -54,10 +54,7 @@
 #define RX_PW_P5    0x16  // 'RX payload width, pipe5' register address
 #define FIFO_STATUS 0x17  // 'FIFO Status Register' register address
 
-#define MAX_RT      0x10 //达到最大重发次数中断标志位
-#define TX_DS		0x20 //发送完成中断标志位	  // 
 
-#define RX_DR		0x40 //接收到数据中断标志位
  /*********************************************************************
 *
 *       Global data
@@ -66,7 +63,7 @@
 */
 
 // u8 nrf_tx[TX_PLOAD_WIDTH];		//发射数据缓存
-__IO u8 NRF_ADDRESS[ADR_WIDTH] = {0x00,0x01,0x02,0x03,0x00};  // 定义一个发送地址,默认为0地址
+__IO u8 NRF_ADDRESS[ADR_WIDTH] = {0x00,0x01,0x02,0x03,0x11};  // 定义一个发送地址,默认为0地址
 
  /*********************************************************************
 *
