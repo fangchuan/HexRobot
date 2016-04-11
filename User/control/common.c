@@ -31,5 +31,105 @@ int issafe(int value, int min, int max)
 	  else
 			return 0;
 }
+/*
+*********************************************************************************************************
+*	函 数 名: constrain_180
+*	功能说明: 将误差角度限制在0--180°范围内
+*	形    参:  无
+*	返 回 值: 限制值
+*********************************************************************************************************
+*/
+float constrain_180(float error_angle)
+{
+	    float value;
+	    
+	    if(error_angle < -180)
+			{
+				value = error_angle + 360;
+				return value;
+			}
+			if(error_angle > 180)
+			{
+				value = error_angle - 360;
+				return value;
+			}
+			else
+				return error_angle;
+	   
+}
 
+/*
+*********************************************************************************************************
+*	函 数 名: update_DCM
+*	功能说明: 更新方向余弦矩阵
+*	形    参: angle:绕Z轴旋转的欧拉角
+*	返 回 值: 
+*********************************************************************************************************
+*/
+void update_DCM(float angle, Matrix3f* m)
+{
+	    float cos_angle = cos(angle);
+      float	sin_angle = sin(angle);
+
+	    m->a.x = cos_angle;
+	    m->a.y = - sin_angle;
+	    m->a.z = 0;
+	
+	    m->b.x = sin_angle;
+	    m->b.y = cos_angle;
+	    m->b.z = 0;
+	 
+	    m->c.x = 0;
+	    m->c.y = 0;
+	    m->c.z = 1;
+	   
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: update_DCM_T
+*	功能说明: 更新方向余弦矩阵的逆，即他的转置
+*	形    参: angle:绕Z轴旋转的欧拉角
+*	返 回 值: 
+*********************************************************************************************************
+*/
+void update_DCM_T(float angle, Matrix3f* m)
+{
+	    float cos_angle = cos(angle);
+      float	sin_angle = sin(angle);
+
+	    m->a.x = cos_angle;
+	    m->a.y = sin_angle;
+	    m->a.z = 0;
+	
+	    m->b.x = -sin_angle;
+	    m->b.y = cos_angle;
+	    m->b.z = 0;
+	 
+	    m->c.x = 0;
+	    m->c.y = 0;
+	    m->c.z = 1;
+	   
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: DCM_Multiply_Position
+*	功能说明: 位置向量左乘方向余弦矩阵
+*	形    参: p:旧的位置向量，         m:方向余弦矩阵
+*	返 回 值: 指向新Position结构体
+*********************************************************************************************************
+*/
+Position DCM_Multiply_Position(Position* p, Matrix3f* m)
+{
+	
+      Position  new_p;
+	 
+	    new_p.x = m->a.x * p->x + m->a.y * p->y + m->a.z * p->z;
+	    new_p.y = m->b.x * p->x + m->b.y * p->y + m->b.z * p->z;
+	    new_p.z = m->c.x * p->x + m->c.y * p->y + m->c.z * p->z;
+
+	    return new_p;
+	   
+}
 /***************************** 阿波罗科技 www.apollorobot.com (END OF FILE) *********************************/

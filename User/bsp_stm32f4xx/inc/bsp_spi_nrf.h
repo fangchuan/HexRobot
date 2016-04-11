@@ -32,6 +32,12 @@ typedef struct _NRF_PKT {
 				int Y_angle;         //MPU6050   pitch
 	      
 }_nrf_pkt;
+
+#define MAX_RT      0x10 //达到最大重发次数中断标志位
+#define TX_DS		    0x20 //发送完成中断标志位	  // 
+
+#define RX_DR		    0x40 //接收到数据中断标志位
+
 #define  NRF_ROCKER_FORWARD   1
 #define  NRF_ROCKER_BACKWARD  255
 #define  NRF_ROCKER_LEFT      1

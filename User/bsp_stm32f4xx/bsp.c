@@ -203,8 +203,8 @@ void BSP_Tick_Init (void)
     cnts  = cpu_clk_freq / (CPU_INT32U)OS_TICKS_PER_SEC;        /* Determine nbr SysTick increments.                    */
 #endif
     
-   OS_CPU_SysTickInit(cnts);                                 /* 这里默认的是最高优先级，根据实际情况修改             */
-//	SysTick_Config(cnts);                                      /* 这里默认的是最低优先级                               */
+//   OS_CPU_SysTickInit(cnts);                                 /* 这里默认的是最高优先级，根据实际情况修改             */
+	SysTick_Config(cnts);                                      /* 这里默认的是最低优先级                               */
 }
 
 /*$PAGE*/

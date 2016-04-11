@@ -195,7 +195,6 @@ static void DispTaskInfo(void)
 *********************************************************************************************************
 *	函 数 名: AppTaskStart
 *	功能说明: 这是一个启动任务，在多任务系统启动后，必须初始化滴答计数器(在BSP_Init中实现)
-*             主要实现按键检测和触摸检测。
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
 *	优 先 级: 2
@@ -222,7 +221,9 @@ static  void  AppTaskStart (void *p_arg)
     
 	  /* 创建任务 */
     AppTaskCreate(); 
-
+	
+    /*Delete task*/
+    OSTaskDel(&AppTaskStartTCB,&err);
 }
 /*
 *********************************************************************************************************
@@ -239,7 +240,6 @@ static void AppTaskCOM(void *p_arg)
 	 
 	while(1)
 	{
-//		bsp_LedToggle(2);
 		DispTaskInfo();
 		BSP_OS_TimeDlyMs(5000);	
 	} 						  	 	       											   
@@ -299,6 +299,7 @@ static  void  AppTaskNrfReceiver (void)
 {
     OS_ERR   err;
 	  u8    status;
+	
 	  NRF_RX_Mode();
     while(1)
 		{
@@ -313,25 +314,26 @@ static  void  AppTaskNrfReceiver (void)
                         nrf_receiver_buffer.key_value  == NRF_KEY_FORWARD ||
                         nrf_receiver_buffer.Y_angle < -NRF_EULER_THRE)
                     {
-//												Go_Straight();
+											/*向前走1步，步长100mm，占空比50%*/
+											 Go_Straight(STRAIGHT_FORWARD, DUTY_50, STRIDE, 1);
 										}
                 if(nrf_receiver_buffer.car_speed == NRF_ROCKER_BACKWARD ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_BACKWARD ||
                         nrf_receiver_buffer.Y_angle > NRF_EULER_THRE)
                     {
-//												Go_Back();
+                        Go_Straight(STRAIGHT_BACKWARD, DUTY_50, STRIDE, 1);			
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_LEFT ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_LEFT ||
                         nrf_receiver_buffer.X_angle > NRF_EULER_THRE)
                     {
-//												Turn_Left();
+												Turn_Around(DIRECTION_CC, DEF_TURN_ANGLE, 1);
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_RIGHT ||
                         nrf_receiver_buffer.key_value == NRF_KEY_RIGHT ||
                         nrf_receiver_buffer.X_angle < -NRF_EULER_THRE)
                     {
-//												Turn_Right();
+												Turn_Around(DIRECTION_C, DEF_TURN_ANGLE, 1);
 										}
                 if(nrf_receiver_buffer.car_speed == NRF_STOP && 
 									 nrf_receiver_buffer.car_angle == NRF_STOP && 
@@ -339,7 +341,7 @@ static  void  AppTaskNrfReceiver (void)
 								   fabs(nrf_receiver_buffer.X_angle) < NRF_EULER_SAFE && 
 								   fabs(nrf_receiver_buffer.Y_angle) < NRF_EULER_SAFE )
                     {
-//												Stop();
+												Sit_Down(2);
 										}
 
             }
@@ -361,10 +363,13 @@ static void AppTaskRobotControl(void *p_arg)
 	OS_ERR   err;
 	(void)p_arg;
 	 
-	/*复位动作 2s*/
+	/*复位动作 5s*/
 	 Position_Reset(5);
-	/**/
-	 Stand_Up(8);
+	/*站立动作，停留5s*/
+	 Stand_Up(5);
+
+   Go_Straight(STRAIGHT_FORWARD, DUTY_50, STRIDE, 10);
+   
 	 while(1)
 	{
 	  	OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	

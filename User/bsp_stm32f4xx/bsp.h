@@ -87,7 +87,6 @@
 #include "bsp_spi_flash.h"
 #include "bsp_tim_pwm.h"
 #include "bsp_ioctl.h"
-#include "control.h"
 //#include "bsp_eeprom_24xx.h"
 //#include "bsp_si4730.h"
 //#include "bsp_hmc5883l.h"
