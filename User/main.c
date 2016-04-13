@@ -106,6 +106,7 @@ static void   AppTaskCOM			      (void 	  *p_arg);
 static void   DispTaskInfo          (void);
 static void   AppTaskNrfReceiver    (void);
 
+static _Order nrf_order = STOP;
 
 /*
 *********************************************************************************************************
@@ -303,7 +304,7 @@ static  void  AppTaskNrfReceiver (void)
 	  NRF_RX_Mode();
     while(1)
 		{
-				OSSemPend(&SEM_NRFRX, 0, OS_OPT_PEND_BLOCKING,(CPU_TS*)0, &err);
+//				OSSemPend(&SEM_NRFRX, 0, OS_OPT_PEND_BLOCKING,(CPU_TS*)0, &err);
 			
 				status = NRF_Rx_Dat((u8*)&nrf_receiver_buffer);
 			    /*判断接收状态*/
@@ -314,26 +315,25 @@ static  void  AppTaskNrfReceiver (void)
                         nrf_receiver_buffer.key_value  == NRF_KEY_FORWARD ||
                         nrf_receiver_buffer.Y_angle < -NRF_EULER_THRE)
                     {
-											/*向前走1步，步长100mm，占空比50%*/
-											 Go_Straight(STRAIGHT_FORWARD, DUTY_50, STRIDE, 1);
+                        nrf_order = GO_FORWARD;
 										}
                 if(nrf_receiver_buffer.car_speed == NRF_ROCKER_BACKWARD ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_BACKWARD ||
                         nrf_receiver_buffer.Y_angle > NRF_EULER_THRE)
                     {
-                        Go_Straight(STRAIGHT_BACKWARD, DUTY_50, STRIDE, 1);			
+                        nrf_order = GO_BACKWARD;
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_LEFT ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_LEFT ||
                         nrf_receiver_buffer.X_angle > NRF_EULER_THRE)
                     {
-												Turn_Around(DIRECTION_CC, DEF_TURN_ANGLE, 1);
+											  nrf_order = TURN_LEFT;
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_RIGHT ||
                         nrf_receiver_buffer.key_value == NRF_KEY_RIGHT ||
                         nrf_receiver_buffer.X_angle < -NRF_EULER_THRE)
                     {
-												Turn_Around(DIRECTION_C, DEF_TURN_ANGLE, 1);
+                        nrf_order = TURN_RIGHT;
 										}
                 if(nrf_receiver_buffer.car_speed == NRF_STOP && 
 									 nrf_receiver_buffer.car_angle == NRF_STOP && 
@@ -341,11 +341,12 @@ static  void  AppTaskNrfReceiver (void)
 								   fabs(nrf_receiver_buffer.X_angle) < NRF_EULER_SAFE && 
 								   fabs(nrf_receiver_buffer.Y_angle) < NRF_EULER_SAFE )
                     {
-												Sit_Down(2);
+                        nrf_order = STOP;
 										}
 
             }
-			  OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
+//			  OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
+					OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
 		}			
 }
 
@@ -364,14 +365,38 @@ static void AppTaskRobotControl(void *p_arg)
 	(void)p_arg;
 	 
 	/*复位动作 5s*/
-	 Position_Reset(5);
-	/*站立动作，停留5s*/
-	 Stand_Up(5);
-
-   Go_Straight(STRAIGHT_FORWARD, DUTY_50, STRIDE, 10);
+	 Position_Reset(2);
+	/*站立动作*/
+	 Stand_Up();
    
 	 while(1)
 	{
+		  switch(nrf_order)									
+			{
+				case GO_FORWARD:
+   		                 /*向前走1步，步长180mm，占空比50%*/
+											 Go_Straight(STRAIGHT_FORWARD, DUTY_50, STRIDE, 1);
+				break;
+				case GO_BACKWARD:
+					             /*向后走1步，步长180mm，占空比50%*/
+		                   Go_Straight(STRAIGHT_BACKWARD, DUTY_50, STRIDE, 1);			
+				break;
+				case TURN_LEFT:
+					             /*向左转20°*/
+											 Turn_Around(DIRECTION_CC, DEF_TURN_ANGLE, 1);
+				break;
+				case TURN_RIGHT:
+					             /*向右转20°*/
+											 Turn_Around(DIRECTION_C, DEF_TURN_ANGLE, 1);
+				break;
+				case STOP:
+					             /*停止*/
+											 Stand_Up();
+				break;
+				default:
+					break;
+			}
+		  
 	  	OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
 	} 						  	 	       											   
 }
