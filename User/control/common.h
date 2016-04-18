@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "math.h"
 #include "string.h"
+#include "stdio.h"
 /*********************************************************************
 *
 *       MACRO Define
@@ -21,6 +22,8 @@
 #define  L0X2          160      //2*L0
 #define  L2X2          180      //2*L2
 #define  L2L3X2        21600    //2*L2*L3
+#define  D1_DEF        165      //臀关节到立足点的直线距离  默认值
+#define  D1_STRATCH    240      //腿伸展状态下  臀关节到立足点的直线距离
 
 #define  COSTH1        -0.5     //cos120  Leg1第一关节到机体中心的夹角
 #define  SINTH1        0.866    //sin120
@@ -59,8 +62,8 @@
 #define min(a,b)             ((a)<(b)?(a):(b))
 #define max(a,b)             ((a)>(b)?(a):(b))
 #define constrain(amt,low,high)   ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
-#define radians(deg)         ((deg)*DEG_TO_RAD)
-#define degrees(rad)         ((rad)*RAD_TO_DEG)
+#define radians(deg)         ((deg)*DEGREE_TO_RAD)
+#define degrees(rad)         ((rad)*RAD_TO_DEGREE)
 
 //复位状态下关节角度的值
 #define HIP_1_DEF_ANGLE        41
@@ -90,13 +93,20 @@
 #define  PI_2                (float)0
 	
 //一个周期的步长
-#define  STRIDE              180//mm
+#define  STRIDE              150//mm
 //默认转角--20°
 #define  DEF_TURN_ANGLE      0.349065
 //站立状态下的机体高度
 #define  HEIGHT_BODY         130//mm
 //摆动腿的足端高度
-#define  HEIGHT_TRANSFOOT    -70 //mm
+#define  HEIGHT_TRANSFOOT    -50 //mm
+//舵机转动速度--w 
+#define ACTION_SPEED 	       7		 //range:0 - 9
+#define SHRINK_SPEED 	      ((u8)((0.6)*ACTION_SPEED))
+#define ACTION_DELAY         20      //ms	 //10   
+#define TURN_DELAY 		       20      //ms  //3
+#define STRAIGHT_DELAY       20      //ms	 //3
+
 //直线行走方向
 #define  STRAIGHT_FORWARD    PI_1_2
 #define  STRAIGHT_BACKWARD   PI_3_2
@@ -110,6 +120,33 @@
 #define ANGLE_TO_PWM(angle)  (angle*PARAMETER)
 #define PWM_TO_ANGLE(pwm)    (float)((pwm - PWM_MIN)*0.25)
 	
+//
+//机器人运动类型
+//
+typedef enum _ORDER {
+             GO_FORWARD = 1,
+	           GO_BACKWARD= 2,
+	           TURN_LEFT  = 3,
+	           TURN_RIGHT = 4,
+	           STOP       = 5,
+	           LIFT_LEG1  = 6,
+	           LIFT_LEG3  = 7,
+	           LIFT_LEG4  = 8,
+	           LIFT_LEG6  = 9,
+}_Order;
+//
+//robot control task ADT
+//
+#define  FIFO_MAX_SIZE    31   //最大支持30个任务
+#define  FIFO_EMPTY       -1
+#define  FIFO_FULL        -2
+#define  NO_ERR           0
+typedef struct {
+        _Order   task_array[FIFO_MAX_SIZE];
+	      unsigned short  front;
+	      unsigned short  rear;
+	      unsigned short  size;
+}_Task;
 //
 //描述关节位置的数据结构
 //
@@ -149,11 +186,22 @@ typedef struct _Matrix3f
 	
 } Matrix3f;
 
+//
+//描述机体超声波探测到的距离
+//
+typedef struct {
+	      float left_distance;
+	      float right_distance;
+   
+}_Ultrasnio;
 extern int issafe(int value, int min, int max);
 extern float constrain_180(float error_angle);
 extern void update_DCM(float angle, Matrix3f* m);
 extern void update_DCM_T(float angle, Matrix3f* m);
 extern Position DCM_Multiply_Position(Position* p, Matrix3f* m);
-
+extern void update_Jacobi(float a1, float a2,  float a3, Matrix3f* m);
+extern void init_task_fifo(_Task* task);
+extern int fifo_put_task(_Task*task, _Order order);
+extern int fifo_get_task(_Task* task, _Order* current_order);
 #endif
 /***************************** 阿波罗科技 www.apollorobot.com (END OF FILE) *********************************/

@@ -84,31 +84,31 @@
 	*/
 
 	/* 按键口对应的RCC时钟 */
-	#define RCC_ALL_KEY 	(RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOF | RCC_AHB1Periph_GPIOH | RCC_AHB1Periph_GPIOI | RCC_AHB1Periph_GPIOG)
+	#define RCC_ALL_KEY 	  RCC_AHB1Periph_GPIOE 
 
-	#define GPIO_PORT_K1    GPIOI
-	#define GPIO_PIN_K1	    GPIO_Pin_8
+	#define GPIO_PORT_K1    GPIOE
+	#define GPIO_PIN_K1	    GPIO_Pin_4
 
-	#define GPIO_PORT_K2    GPIOC
-	#define GPIO_PIN_K2	    GPIO_Pin_13
+//	#define GPIO_PORT_K2    GPIOC
+//	#define GPIO_PIN_K2	    GPIO_Pin_13
 
-	#define GPIO_PORT_K3    GPIOI
-	#define GPIO_PIN_K3	    GPIO_Pin_11
+//	#define GPIO_PORT_K3    GPIOI
+//	#define GPIO_PIN_K3	    GPIO_Pin_11
 
-	#define GPIO_PORT_K4    GPIOH
-	#define GPIO_PIN_K4	    GPIO_Pin_2
+//	#define GPIO_PORT_K4    GPIOH
+//	#define GPIO_PIN_K4	    GPIO_Pin_2
 
-	#define GPIO_PORT_K5    GPIOH
-	#define GPIO_PIN_K5	    GPIO_Pin_3
+//	#define GPIO_PORT_K5    GPIOH
+//	#define GPIO_PIN_K5	    GPIO_Pin_3
 
-	#define GPIO_PORT_K6    GPIOF
-	#define GPIO_PIN_K6	    GPIO_Pin_11
+//	#define GPIO_PORT_K6    GPIOF
+//	#define GPIO_PIN_K6	    GPIO_Pin_11
 
-	#define GPIO_PORT_K7    GPIOG
-	#define GPIO_PIN_K7	    GPIO_Pin_7
+//	#define GPIO_PORT_K7    GPIOG
+//	#define GPIO_PIN_K7	    GPIO_Pin_7
 
-	#define GPIO_PORT_K8    GPIOH
-	#define GPIO_PIN_K8	    GPIO_Pin_15
+//	#define GPIO_PORT_K8    GPIOH
+//	#define GPIO_PIN_K8	    GPIO_Pin_15
 #endif
 
 static KEY_T s_tBtn[KEY_COUNT];
@@ -137,16 +137,16 @@ static void bsp_DetectKey(uint8_t i);
 	static uint8_t IsKeyDown8(void) {if ((GPIO_PORT_K8->IDR & GPIO_PIN_K8) == 0) return 1;else return 0;}
 #else				/* 安富莱 STM32-V5 开发板 */
 	static uint8_t IsKeyDown1(void) {if ((GPIO_PORT_K1->IDR & GPIO_PIN_K1) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown2(void) {if ((GPIO_PORT_K2->IDR & GPIO_PIN_K2) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown3(void) {if ((GPIO_PORT_K3->IDR & GPIO_PIN_K3) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown4(void) {if ((GPIO_PORT_K4->IDR & GPIO_PIN_K4) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown5(void) {if ((GPIO_PORT_K5->IDR & GPIO_PIN_K5) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown6(void) {if ((GPIO_PORT_K6->IDR & GPIO_PIN_K6) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown7(void) {if ((GPIO_PORT_K7->IDR & GPIO_PIN_K7) == 0) return 1;else return 0;}
-	static uint8_t IsKeyDown8(void) {if ((GPIO_PORT_K8->IDR & GPIO_PIN_K8) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown2(void) {if ((GPIO_PORT_K2->IDR & GPIO_PIN_K2) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown3(void) {if ((GPIO_PORT_K3->IDR & GPIO_PIN_K3) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown4(void) {if ((GPIO_PORT_K4->IDR & GPIO_PIN_K4) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown5(void) {if ((GPIO_PORT_K5->IDR & GPIO_PIN_K5) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown6(void) {if ((GPIO_PORT_K6->IDR & GPIO_PIN_K6) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown7(void) {if ((GPIO_PORT_K7->IDR & GPIO_PIN_K7) == 0) return 1;else return 0;}
+//	static uint8_t IsKeyDown8(void) {if ((GPIO_PORT_K8->IDR & GPIO_PIN_K8) == 0) return 1;else return 0;}
 #endif
-	static uint8_t IsKeyDown9(void) {if (IsKeyDown1() && IsKeyDown2()) return 1;else return 0;}
-	static uint8_t IsKeyDown10(void) {if (IsKeyDown1() && IsKeyDown2()) return 1;else return 0;}
+//	static uint8_t IsKeyDown9(void) {if (IsKeyDown1() && IsKeyDown2()) return 1;else return 0;}
+//	static uint8_t IsKeyDown10(void) {if (IsKeyDown1() && IsKeyDown2()) return 1;else return 0;}
 
 /*
 *********************************************************************************************************
@@ -304,26 +304,26 @@ static void bsp_InitKeyHard(void)
 	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K1;
 	GPIO_Init(GPIO_PORT_K1, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K2;
-	GPIO_Init(GPIO_PORT_K2, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K2;
+//	GPIO_Init(GPIO_PORT_K2, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K3;
-	GPIO_Init(GPIO_PORT_K3, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K3;
+//	GPIO_Init(GPIO_PORT_K3, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K4;
-	GPIO_Init(GPIO_PORT_K4, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K4;
+//	GPIO_Init(GPIO_PORT_K4, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K5;
-	GPIO_Init(GPIO_PORT_K5, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K5;
+//	GPIO_Init(GPIO_PORT_K5, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K6;
-	GPIO_Init(GPIO_PORT_K6, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K6;
+//	GPIO_Init(GPIO_PORT_K6, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K7;
-	GPIO_Init(GPIO_PORT_K7, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K7;
+//	GPIO_Init(GPIO_PORT_K7, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K8;
-	GPIO_Init(GPIO_PORT_K8, &GPIO_InitStructure);
+//	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K8;
+//	GPIO_Init(GPIO_PORT_K8, &GPIO_InitStructure);
 }
 
 /*
@@ -372,17 +372,17 @@ static void bsp_InitKeyVar(void)
 
 	/* 判断按键按下的函数 */
 	s_tBtn[0].IsKeyDownFunc = IsKeyDown1;
-	s_tBtn[1].IsKeyDownFunc = IsKeyDown2;
-	s_tBtn[2].IsKeyDownFunc = IsKeyDown3;
-	s_tBtn[3].IsKeyDownFunc = IsKeyDown4;
-	s_tBtn[4].IsKeyDownFunc = IsKeyDown5;
-	s_tBtn[5].IsKeyDownFunc = IsKeyDown6;
-	s_tBtn[6].IsKeyDownFunc = IsKeyDown7;
-	s_tBtn[7].IsKeyDownFunc = IsKeyDown8;
+//	s_tBtn[1].IsKeyDownFunc = IsKeyDown2;
+//	s_tBtn[2].IsKeyDownFunc = IsKeyDown3;
+//	s_tBtn[3].IsKeyDownFunc = IsKeyDown4;
+//	s_tBtn[4].IsKeyDownFunc = IsKeyDown5;
+//	s_tBtn[5].IsKeyDownFunc = IsKeyDown6;
+//	s_tBtn[6].IsKeyDownFunc = IsKeyDown7;
+//	s_tBtn[7].IsKeyDownFunc = IsKeyDown8;
 
-	/* 组合键 */
-	s_tBtn[8].IsKeyDownFunc = IsKeyDown9;
-	s_tBtn[9].IsKeyDownFunc = IsKeyDown10;
+//	/* 组合键 */
+//	s_tBtn[8].IsKeyDownFunc = IsKeyDown9;
+//	s_tBtn[9].IsKeyDownFunc = IsKeyDown10;
 }
 
 /*

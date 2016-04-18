@@ -36,16 +36,16 @@
 	#define RCC_ALL_LED 	RCC_AHB1Periph_GPIOE	/* 按键口对应的RCC时钟 */
 
 	#define GPIO_PORT_LED1  GPIOE
-	#define GPIO_PIN_LED1	GPIO_Pin_2
+	#define GPIO_PIN_LED1	GPIO_Pin_0
 
 	#define GPIO_PORT_LED2  GPIOE
-	#define GPIO_PIN_LED2	GPIO_Pin_3
+	#define GPIO_PIN_LED2	GPIO_Pin_1
 
 	#define GPIO_PORT_LED3  GPIOE
-	#define GPIO_PIN_LED3	GPIO_Pin_4
+	#define GPIO_PIN_LED3	GPIO_Pin_2
 
 	#define GPIO_PORT_LED4  GPIOE
-	#define GPIO_PIN_LED4	GPIO_Pin_5
+	#define GPIO_PIN_LED4	GPIO_Pin_3
 
 #else	/* STM32_F4 */
 	/*
@@ -57,19 +57,19 @@
 	*/
 
 	/* 按键口对应的RCC时钟 */
-	#define RCC_ALL_LED 	(RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOF | RCC_AHB1Periph_GPIOI)
+	#define RCC_ALL_LED 	RCC_AHB1Periph_GPIOE
 
-	#define GPIO_PORT_LED1  GPIOI
-	#define GPIO_PIN_LED1	GPIO_Pin_10
+	#define GPIO_PORT_LED1  GPIOE
+	#define GPIO_PIN_LED1	GPIO_Pin_0
 
-	#define GPIO_PORT_LED2  GPIOF
-	#define GPIO_PIN_LED2	GPIO_Pin_7
+	#define GPIO_PORT_LED2  GPIOE
+	#define GPIO_PIN_LED2	GPIO_Pin_1
 
-	#define GPIO_PORT_LED3  GPIOF
-	#define GPIO_PIN_LED3	GPIO_Pin_8
+	#define GPIO_PORT_LED3  GPIOE
+	#define GPIO_PIN_LED3	GPIO_Pin_2
 
-	#define GPIO_PORT_LED4  GPIOC
-	#define GPIO_PIN_LED4	GPIO_Pin_2
+	#define GPIO_PORT_LED4  GPIOE
+	#define GPIO_PIN_LED4	GPIO_Pin_3
 #endif
 
 /*

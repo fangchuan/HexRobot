@@ -44,9 +44,13 @@ typedef struct _NRF_PKT {
 #define  NRF_ROCKER_RIGHT     255
 #define  NRF_STOP             0
 #define  NRF_KEY_FORWARD      5
+#define  NRF_KEY_LEG1_UP      5
 #define  NRF_KEY_BACKWARD     8
+#define  NRF_KEY_LEG3_UP      8
 #define  NRF_KEY_LEFT         6
+#define  NRF_KEY_LEG4_UP      6
 #define  NRF_KEY_RIGHT        7
+#define  NRF_KEY_LEG6_UP      7
 #define  NRF_EULER_THRE       15   //体感模式下的阈值是15度
 #define  NRF_EULER_SAFE       10   //体感模式下的安全值是10度
 //

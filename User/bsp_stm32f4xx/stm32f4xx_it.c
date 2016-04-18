@@ -26,7 +26,6 @@
 *********************************************************************************************************
 */
 #include  <includes.h>
-#include  "MainTask.h"
 
 
 #define ERR_INFO "\r\nEnter HardFault_Handler, System Halt.\r\n"
@@ -150,4 +149,4 @@ void DebugMon_Handler(void)
 {
 }
 
-/***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/
+/***************************** 阿波罗科技 www.apollorobot.cn (END OF FILE) *********************************/

@@ -390,12 +390,12 @@ static  void Drive_Knee (void)
 			  angle_to_pwm(&leg5);
 				angle_to_pwm(&leg6);
 
-				 KNEE_1_OUT = leg1.knee_pwm;
-				 KNEE_2_OUT = leg2.knee_pwm;
-				 KNEE_3_OUT = leg3.knee_pwm;
-				 KNEE_4_OUT = leg4.knee_pwm;
-				 KNEE_5_OUT = leg5.knee_pwm;
-				 KNEE_6_OUT = leg6.knee_pwm;
+				KNEE_1_OUT = leg1.knee_pwm;
+				KNEE_2_OUT = leg2.knee_pwm;
+				KNEE_3_OUT = leg3.knee_pwm;
+				KNEE_4_OUT = leg4.knee_pwm;
+				KNEE_5_OUT = leg5.knee_pwm;
+				KNEE_6_OUT = leg6.knee_pwm;
 
 }
 /*********************************************************************************************************
@@ -523,8 +523,7 @@ static  void Drive_B_Ankle (void)
 */
 static  void Drive_Legx (LEG* leg)
 {
-	      if(leg->id  < ID_MIN || leg->id  > ID_MAX)
-					return ;
+
 				switch(leg->id )
 				{
 					case ID_LEG_1:
@@ -568,26 +567,60 @@ static  void Drive_Legx (LEG* leg)
 **********************************************************************
 */
 /*********************************************************************************************************
-*	函 数 名: Position_Reset
+*	函 数 名: Lift_down_legx
 *	功能说明: 复位动作
 *	形    参：复位动作的延时时长
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void Position_Reset(int delay_time)
+void Lift_down_legx(u8  leg_id)
 {
-			OS_ERR  err;
-	    u8    i = 0;
-	    for( ;i < ID_MAX; i++)
+
+	    LEG*    leg;
+	    Position* p;
+	
+	    D1_Length = D1_STRATCH;
+	
+	    switch(leg_id)
 			{
-					get_hip_angle(leg[i], position_body[i]);	
-					get_knee_angle(leg[i],position_body[i]);
-					get_ankle_angle(leg[i],position_body[i]);
-					angle_to_pwm(leg[i]);
-					Drive_Legx(leg[i]);
+				case ID_LEG_1:
+					leg = &leg1;
+					set_position(&P1_body ,-STRATCH_X, STRATCH_Y, STRATCH_Z);
+				  p = &P1_body;
+					break;
+				case ID_LEG_2:
+					leg = &leg2;
+					set_position(&P2_body ,-STRATCH_X, STRATCH_Y, STRATCH_Z);
+				  p = &P2_body;
+					break;
+				case ID_LEG_3:
+					leg = &leg3;
+					set_position(&P3_body ,-STRATCH_X, -STRATCH_Y, STRATCH_Z);
+				  p = &P3_body;
+					break;
+				case ID_LEG_4:
+					leg = &leg4;
+					set_position(&P4_body , STRATCH_X, -STRATCH_Y, STRATCH_Z);
+				  p = &P4_body;
+					break;
+				case ID_LEG_5:
+					leg = &leg5;
+					set_position(&P5_body ,-STRATCH_X, STRATCH_Y, STRATCH_Z);
+				  p = &P5_body;
+					break;
+				case ID_LEG_6:
+					leg = &leg6;
+					set_position(&P6_body , STRATCH_X, STRATCH_Y,  STRATCH_Z);
+				  p = &P6_body;
+					break;
 			}
-			
-			OSTimeDlyHMSM(0,0,delay_time,0,OS_OPT_TIME_DLY, &err);
+
+					get_hip_angle(leg, p);	
+					get_knee_angle(leg,p);
+					get_ankle_angle(leg,p);
+					angle_to_pwm(leg);
+					Drive_Legx(leg);
+
 		 	   
 }
 /*********************************************************************************************************
@@ -599,8 +632,17 @@ void Position_Reset(int delay_time)
 */
 void Sit_Down(int delay_time)
 {
-			OS_ERR  err;
 	    u8    i = 0;
+	    OS_ERR  err;
+	
+	    D1_Length = D1_DEF; 
+	
+			set_position(&P1_body ,-Foot_1_Reset_X, Foot_1_Reset_Y,  Foot_1_Reset_Z);
+			set_position(&P2_body, -Foot_2_Reset_X, Foot_2_Reset_Y,  Foot_2_Reset_Z);
+			set_position(&P3_body, -Foot_1_Reset_X, -Foot_1_Reset_Y, Foot_1_Reset_Z);
+			set_position(&P4_body, Foot_1_Reset_X,  -Foot_1_Reset_Y, Foot_1_Reset_Z);
+			set_position(&P5_body, Foot_2_Reset_X,  Foot_2_Reset_Y,  Foot_2_Reset_Z);
+			set_position(&P6_body, Foot_1_Reset_X,  Foot_1_Reset_Y,  Foot_1_Reset_Z);
 	    for( ;i < ID_MAX; i++)
 			{
 					get_hip_angle(leg[i], position_body[i]);	
@@ -609,8 +651,9 @@ void Sit_Down(int delay_time)
 					angle_to_pwm(leg[i]);
 					Drive_Legx(leg[i]);
 			}
-			
+		
 			OSTimeDlyHMSM(0,0,delay_time,0,OS_OPT_TIME_DLY, &err);
+
 }
 /*********************************************************************************************************
 *	函 数 名: Stand_Up
@@ -619,13 +662,12 @@ void Sit_Down(int delay_time)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void Stand_Up(int delay_time)
+void Stand_Up(void)
 {
 
-	  OS_ERR       err;
 		u8    i = 0;
 	
-	  D1_Length = 165;//mm
+	  D1_Length = D1_DEF;//mm
 	  D2_Length = 170;//mm
 	 
 	  set_position(&P1_body ,Foot_1_Stand_X, Foot_1_Stand_Y, Foot_1_Stand_Z);
@@ -645,8 +687,6 @@ void Stand_Up(int delay_time)
 					Drive_Legx(leg[i]);
 			}
 			
-			OSTimeDlyHMSM(0,0,delay_time, 0,OS_OPT_TIME_DLY, &err);
-
 }
 
 /*********************************************************************************************************
@@ -664,6 +704,8 @@ void Go_Straight(float yaw, float duty, float stride, int steps)
 	   float   s1 = stride / 2;
      u8       i ;
 	
+	   D1_Length = D1_DEF;
+	   
 	   for(i = 0; i < steps; i++)
 		 {
 			 /*重心前移s/4*/
@@ -714,21 +756,23 @@ void Stamp(int counts)
 	   u8   i;
 	   OS_ERR  err;
 	
+	   D1_Length = D1_DEF;
+	   
 	   for( i = 0; i < counts; i ++)
 	  {
 		      legs_up_down(A_position_body, HEIGHT_TRANSFOOT);//A Group  lift
           Drive_A_Knee();
-			    OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+			    OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					legs_up_down(A_position_body, HEIGHT_BODY);//A Group  left
           Drive_A_Knee();
-			    OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+			    OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 			
 			    legs_up_down(B_position_body, HEIGHT_TRANSFOOT);//B Group  lift
           Drive_B_Knee();
-			    OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+			    OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					legs_up_down(B_position_body, HEIGHT_BODY);//B Group  left
           Drive_B_Knee();
-			    OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+			    OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 			    
 	  }
 
@@ -748,6 +792,8 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 	    float    a1 = angle / 2;
 	    float    a_def;
 	
+	    D1_Length  = D1_DEF;
+	    
 	    if(direction == DIRECTION_C)
 				  a_def = -angle;
 			else
@@ -770,21 +816,21 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 						   /*旋转机体 a/4*/
 						   update_body_position(a0, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 					     /*A组腿转动a度*/
                Turn_Aleg(a0, a_def);
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 							 Putdown_Aleg();
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 							 /*机体转动到a/2*/	
 							 update_body_position(a1, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 					     /*B组腿转动a度*/
 					     Turn_Bleg(a1, a_def);
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 							 Putdown_Bleg();
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 							 
 						break;
 					//逆时针--向左转
@@ -800,23 +846,23 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 						   /*旋转机体 a/4*/
 						   update_body_position(a0, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 					     /*B组腿转动a度*/
                Turn_Bleg(a0, a_def);
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 								
 							 Putdown_Bleg();
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 							 /*机体转动到a/2*/	
 							 update_body_position(a1, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 					     /*A组腿转动a度*/
 					     Turn_Aleg(a1, a_def);
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 								
 							 Putdown_Aleg();
-							 OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 								
 						break;
 				}
@@ -828,10 +874,10 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 							 set_position(&P5_body, Foot_5_Stand_X, Foot_5_Stand_Y, Foot_5_Stand_Z);
 							 set_position(&P6_body, Foot_6_Stand_X, Foot_6_Stand_Y, Foot_6_Stand_Z);
 							 Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 500,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
 				
 			}
 		
 }
 
-/***************************** 阿波罗科技 www.apollorobot.com (END OF FILE) *********************************/
+/***************************** 阿波罗科技 www.apollorobot.cn (END OF FILE) *********************************/

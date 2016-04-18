@@ -844,6 +844,7 @@ static void bsp_Servo_GPIOConfig(void)
 				RCC_AHB1PeriphClockCmd(HIP_PORT_CLK, ENABLE);
 				RCC_AHB1PeriphClockCmd(KNEE_PORT_CLK, ENABLE);
 	      RCC_AHB1PeriphClockCmd(ANKLE_PORT_CLK, ENABLE);
+	      RCC_AHB1PeriphClockCmd(HEADTAIL_PORT_CLK, ENABLE);
 
 				/* 配置HIP    GPIO */
 				GPIO_InitStructure.GPIO_Pin = HIP_1_Pin | HIP_2_Pin | HIP_3_Pin | HIP_4_Pin;	/* 带入的形参 */
@@ -891,6 +892,12 @@ static void bsp_Servo_GPIOConfig(void)
 				GPIO_Init(ANKLE_PORT_2, &GPIO_InitStructure);				
 				GPIO_PinAFConfig(ANKLE_PORT_2, ANKLE_5_PinSource, ANKLE_PORT_AF_2);
 				GPIO_PinAFConfig(ANKLE_PORT_2, ANKLE_6_PinSource, ANKLE_PORT_AF_2);
+				
+				/*配置HEAD  TAIL 的GPIO*/
+			  GPIO_InitStructure.GPIO_Pin = HEAD_Pin | TAIL_Pin;	/* 带入的形参 */
+				GPIO_Init(HEADTAIL_PORT, &GPIO_InitStructure);				
+				GPIO_PinAFConfig(HEADTAIL_PORT, HEAD_PinSource, HEADTAIL_PORT_AF);
+				GPIO_PinAFConfig(HEADTAIL_PORT, TAIL_PinSource, HEADTAIL_PORT_AF);
 }
 
 /*
@@ -907,16 +914,12 @@ static void bsp_Servo_TIMConfig(void)
 	 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 		TIM_OCInitTypeDef          TIM_OCInitStructure;
 	  u16                       CCR_VAL = DefaultPWM;
-//	  u16                       PrescalerValue;
 	
-			RCC_APB1PeriphClockCmd( HIP_TIM_CLK | ANKLE_TIM_CLK, ENABLE);
+			RCC_APB1PeriphClockCmd( HIP_TIM_CLK | ANKLE_TIM_CLK | HEADTAIL_TIM_CLK, ENABLE);
 			
-//	    /* Compute the prescaler value */
-//      PrescalerValue = (uint16_t) ((SystemCoreClock /2) / 1410000) - 1;
 			/* Time base configuration */
 			TIM_TimeBaseStructure.TIM_Period = TIMPeriod;
-			TIM_TimeBaseStructure.TIM_Prescaler = TIMAPB1_Prescaler;//27 - 1;
-//	    TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
+			TIM_TimeBaseStructure.TIM_Prescaler = TIMAPB1_Prescaler;
 			TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 
@@ -968,15 +971,21 @@ static void bsp_Servo_TIMConfig(void)
 			/* TIMx enable counter */
 	    TIM_Cmd(ANKLE_TIM_1, ENABLE);
 			
+			/*TIM2 Initialize*/
+			TIM_OC3Init(HEADTAIL_TIM, &TIM_OCInitStructure);
+			TIM_OC3PreloadConfig(HEADTAIL_TIM, TIM_OCPreload_Enable);
+			TIM_OC4Init(HEADTAIL_TIM, &TIM_OCInitStructure);
+			TIM_OC4PreloadConfig(HEADTAIL_TIM, TIM_OCPreload_Enable);
+			TIM_ARRPreloadConfig(HEADTAIL_TIM, ENABLE);
+			/* TIMx enable counter */
+	    TIM_Cmd(HEADTAIL_TIM, ENABLE);
+			
 			
 			/*Enable  TIM1 and TIM9*/
 			RCC_APB2PeriphClockCmd( KNEE_TIM_CLK, ENABLE);
-//			/* Compute the prescaler value */
-//      PrescalerValue = (uint16_t) ((SystemCoreClock) / 705000) - 1;
 			/* Time base configuration */
 	    TIM_TimeBaseStructure.TIM_Period = TIMPeriod;
 			TIM_TimeBaseStructure.TIM_Prescaler = TIMAPB2_Prescaler;
-//      TIM_TimeBaseStructure.TIM_Prescaler = PrescalerValue;
 			TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 			TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 			TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;		/* TIM1 和 TIM8 必须设置 */	

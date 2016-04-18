@@ -76,6 +76,7 @@ void bsp_Init(void)
 //	NRF_Check();
 //	bsp_FlashInit();    /*初始化串行FLASH芯片*/
 	bsp_ServoInit();    /*舵机初始化*/
+	bsp_adc_init();
 	/* 挂载文件系统 */
 	result = f_mount(&fs, "0:/", 0);
   if( result == FR_NO_FILESYSTEM )//如果该磁盘没有被格式化为FatFS，则格式化它

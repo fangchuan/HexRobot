@@ -43,9 +43,9 @@
 
 
 
-extern void Position_Reset(int delay_time);
+extern void Lift_down_legx(u8  leg_id);
 extern void Sit_Down(int delay_time);
-extern void Stand_Up(int delay_time);
+extern void Stand_Up(void);
 extern void Go_Straight(float yaw, float duty, float stride, int steps);
 extern void Stamp(int counts);
 extern void Turn_Around(int direction, float angle, unsigned int counts );

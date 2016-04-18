@@ -37,6 +37,9 @@ ANKLE3:PC8,TIM3_CH3
 ANKLE4:PC9,TIM3_CH4
 ANKLE5:PD12,TIM4_CH1
 ANKLE6:PD13,TIM4_CH2
+
+HEAD:PB10, TIM2_CH3
+TAIL:PB11, TIM2_CH4
 */
 #define  HIP_PORT_CLK    (RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOD)
 #define  HIP_TIM_CLK     (RCC_APB1Periph_TIM4 | RCC_APB1Periph_TIM5)
@@ -99,6 +102,16 @@ ANKLE6:PD13,TIM4_CH2
 #define  ANKLE_TIM_1        TIM3
 #define  ANKLE_PORT_AF_2    GPIO_AF_TIM4
 #define  ANKLE_TIM_2        TIM4
+
+#define  HEADTAIL_PORT_CLK  RCC_AHB1Periph_GPIOB
+#define  HEADTAIL_TIM_CLK   RCC_APB1Periph_TIM2
+#define  HEAD_Pin           GPIO_Pin_10
+#define  TAIL_Pin           GPIO_Pin_11
+#define  HEAD_PinSource     GPIO_PinSource10
+#define  TAIL_PinSource     GPIO_PinSource11
+#define  HEADTAIL_PORT      GPIOB
+#define  HEADTAIL_TIM       TIM2
+#define  HEADTAIL_PORT_AF   GPIO_AF_TIM2
 
 #define  TIMAPB1_Prescaler     83
 #define  TIMAPB2_Prescaler     167
