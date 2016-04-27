@@ -568,8 +568,8 @@ static  void Drive_Legx (LEG* leg)
 */
 /*********************************************************************************************************
 *	函 数 名: Lift_down_legx
-*	功能说明: 复位动作
-*	形    参：复位动作的延时时长
+*	功能说明: 抬腿动作
+*	形    参：
 *	返 回 值: 无
 *********************************************************************************************************
 */
@@ -590,7 +590,7 @@ void Lift_down_legx(u8  leg_id)
 					break;
 				case ID_LEG_2:
 					leg = &leg2;
-					set_position(&P2_body ,-STRATCH_X, STRATCH_Y, STRATCH_Z);
+					set_position(&P2_body ,-STRATCH_X, 0,         STRATCH_Z);
 				  p = &P2_body;
 					break;
 				case ID_LEG_3:
@@ -605,7 +605,7 @@ void Lift_down_legx(u8  leg_id)
 					break;
 				case ID_LEG_5:
 					leg = &leg5;
-					set_position(&P5_body ,-STRATCH_X, STRATCH_Y, STRATCH_Z);
+					set_position(&P5_body , STRATCH_X, 0,         STRATCH_Z);
 				  p = &P5_body;
 					break;
 				case ID_LEG_6:

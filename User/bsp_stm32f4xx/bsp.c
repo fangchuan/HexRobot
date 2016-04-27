@@ -77,14 +77,15 @@ void bsp_Init(void)
 //	bsp_FlashInit();    /*初始化串行FLASH芯片*/
 	bsp_ServoInit();    /*舵机初始化*/
 	bsp_adc_init();
+	bsp_ultrasnio_init();
 	/* 挂载文件系统 */
-	result = f_mount(&fs, "0:/", 0);
-  if( result == FR_NO_FILESYSTEM )//如果该磁盘没有被格式化为FatFS，则格式化它
-  {
-      result = f_mkfs("0:/",0,4096); //格式化方式为FDISK,建立分区表，4096为每个簇的大小
-      result = f_mount(&fs,"0:/",0);
-      result = f_mount(&fs,"0:/",1);
-  }
+//	result = f_mount(&fs, "0:/", 0);
+//  if( result == FR_NO_FILESYSTEM )//如果该磁盘没有被格式化为FatFS，则格式化它
+//  {
+//      result = f_mkfs("0:/",0,4096); //格式化方式为FDISK,建立分区表，4096为每个簇的大小
+//      result = f_mount(&fs,"0:/",0);
+//      result = f_mount(&fs,"0:/",1);
+//  }
 }
 
 /*

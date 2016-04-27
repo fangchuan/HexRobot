@@ -34,7 +34,7 @@ void  bsp_adc_init(void)
 {   
 		//初始化IO
 		RCC->AHB1ENR |= 1<<3;    //使能PORTC口时钟 
-		GPIOC->MODER |= 0X0000FFFF;//PC0 PC1 PC2	PC3	anolog输入
+		GPIOC->MODER |= 0X000000FF;//PC0 PC1 PC2	PC3	anolog输入
 
 		//通道10		 
 		RCC->APB2ENR |= 1<<8;    //ADC1时钟使能	  

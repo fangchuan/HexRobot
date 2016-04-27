@@ -89,9 +89,12 @@ static  CPU_STK  AppTaskUserIFStk[APP_CFG_TASK_USER_IF_STK_SIZE];
 static  OS_TCB   AppTaskRobotTCB;
 static  CPU_STK  AppTaskRobotStk[APP_CFG_TASK_ROBOT_STK_SIZE];
 
-static  OS_SEM     	SEM_NRFRX;	   //用于NRF接收数据
+//static  OS_SEM     	SEM_NRFRX;	   //用于NRF接收数据
 
-static  _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
+static _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
+static _Order     _order = STOP;     //nrf命令类型
+static uint8_t android_order[PROTOCOL_MAXLENGTH];//Android命令数据报
+static _ControlMode  manual_mode = NRF_MODE;
 /*
 *********************************************************************************************************
 *                                      函数声明
@@ -106,7 +109,6 @@ static void   AppTaskCOM			      (void 	  *p_arg);
 static void   DispTaskInfo          (void);
 static void   AppTaskNrfReceiver    (void);
 
-static _Order nrf_order = STOP;
 
 /*
 *********************************************************************************************************
@@ -194,6 +196,21 @@ static void DispTaskInfo(void)
 }
 /*
 *********************************************************************************************************
+*	函 数 名: _cbOfTmr1
+*	功能说明: 软件定时器的回调函数
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+static void _cbOfTmr1(OS_TMR *p_tmr, void *p_arg)
+{
+
+    (void)p_arg;
+    Ultrasnio_1_update();			//每100ms调用一次，触发一次超声波数据更新
+		Ultrasnio_2_update();
+}
+/*
+*********************************************************************************************************
 *	函 数 名: AppTaskStart
 *	功能说明: 这是一个启动任务，在多任务系统启动后，必须初始化滴答计数器(在BSP_Init中实现)
 *	形    参: p_arg 是在创建该任务时传递的形参
@@ -205,7 +222,8 @@ static  void  AppTaskStart (void *p_arg)
 {
 
 	OS_ERR      err;
-
+  //定时器变量
+  OS_TMR             Tmr_100ms;
    (void)p_arg;
 	
 	CPU_Init();
@@ -222,7 +240,19 @@ static  void  AppTaskStart (void *p_arg)
     
 	  /* 创建任务 */
     AppTaskCreate(); 
-	
+	    //创建定时器  OS_CFG_TMR_TASK_RATE_HZ = 100HZ
+    OSTmrCreate ((OS_TMR              *)&Tmr_100ms,
+                 (CPU_CHAR            *)"MyTimer 100ms",
+                 (OS_TICK              )10,                  //第一次延时设置为100ms，
+                 (OS_TICK              )10,                  //定时器周期100ms
+                 (OS_OPT               )OS_OPT_TMR_PERIODIC,//模式设置为重复模式
+                 (OS_TMR_CALLBACK_PTR  )_cbOfTmr1,          //回调函数
+                 (void                *)0,                  //参数设置为0
+                 (OS_ERR              *)err);
+								 
+		//启动定时器
+    OSTmrStart((OS_TMR *)&Tmr_100ms,(OS_ERR *)err);
+								 
     /*Delete task*/
     OSTaskDel(&AppTaskStartTCB,&err);
 }
@@ -237,12 +267,57 @@ static  void  AppTaskStart (void *p_arg)
 */
 static void AppTaskCOM(void *p_arg)
 {	
+	OS_ERR  err;
 	(void)p_arg;
+	 
 	 
 	while(1)
 	{
-		DispTaskInfo();
-		BSP_OS_TimeDlyMs(5000);	
+		  if(manual_mode == ANDROID_MODE)
+			{
+//		DispTaskInfo();
+		
+		  //如果成功接收到一帧命令,则执行以下解析操作
+				if(!get_order_from_uart(android_order))
+				{
+					switch(android_order[PROTOCOL_PAYLOAD_BIT])
+					{
+					 case PROTOCOL_FORWARD:
+						    _order = GO_FORWARD;
+						 break;
+					 case PROTOCOL_BACKWARD:
+						    _order = GO_BACKWARD;
+						 break;
+					 case PROTOCOL_TURNLEFT:
+						    _order = TURN_LEFT;
+						 break;
+					 case PROTOCOL_TURNRIGHT:
+						 		_order = TURN_RIGHT;
+						 break;
+					 case PROTOCOL_STOP:
+						    _order = STOP;
+						 break;
+					 case PROTOCOL_STAMP:
+						    _order = STAMP;
+						 break;
+					 case PROTOCOL_HEAD_LEFT:
+						    _order = TURN_HEAD_LEFT;
+						 break;
+					 case PROTOCOL_HEAD_RIGHT:
+						    _order = TURN_HEAD_RIGHT;
+						 break;
+					 
+					 
+					 default:
+						 break;
+				 }
+		   }
+			 bsp_LedOff(LED0);
+			 bsp_LedOff(LED2);
+			 bsp_LedToggle(LED1);
+		 }
+			
+			OSTimeDlyHMSM(0, 0, 0, 50,OS_OPT_TIME_HMSM_STRICT, &err);		
 	} 						  	 	       											   
 }
 
@@ -261,30 +336,34 @@ static void AppTaskUserIF(void *p_arg)
 {
 	uint8_t ucKeyCode;
   OS_ERR        err;
+	static uint8_t down_count =0;
 	(void)p_arg;	               /* 避免编译器报警 */
 
 	while (1) 
 	{   		
-				ucKeyCode = bsp_GetKey();
+				ucKeyCode = GetKeyState();
 				
-				if (ucKeyCode != KEY_NONE)
-				{
-					switch (ucKeyCode)
+				if (ucKeyCode == KEY_STATE_DOWN)
+				{ //等待按键弹起
+					while(GetKeyState() == KEY_STATE_DOWN);
+					
+					down_count ++;
+					if(down_count == 1)
 					{
-						case KEY_DOWN_K1:			  /* K1键按下 打印任务执行情况 */
-							DispTaskInfo();	     
-							break;
-
-						case KEY_DOWN_K2:			  /* K2键按下 实现连接功能 */
-							OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
-							break;
-						
-						default:                      /* 其他的键值不处理 */
-							break;
+						manual_mode = ANDROID_MODE;
+					}
+					if(down_count == 2)
+					{
+						manual_mode = PC_MODE;
+					}
+					if(down_count == 3)
+					{
+						manual_mode = NRF_MODE;
+						down_count = 0;
 					}
 				}
 	
-        BSP_OS_TimeDlyMs(20);	   
+        OSTimeDlyHMSM(0, 0, 0, 50,OS_OPT_TIME_HMSM_STRICT, &err);	   
 	}
 }
 
@@ -305,8 +384,9 @@ static  void  AppTaskNrfReceiver (void)
     while(1)
 		{
 //				OSSemPend(&SEM_NRFRX, 0, OS_OPT_PEND_BLOCKING,(CPU_TS*)0, &err);
-			
-				status = NRF_Rx_Dat((u8*)&nrf_receiver_buffer);
+			  if(manual_mode == NRF_MODE)
+				{
+					status = NRF_Rx_Dat((u8*)&nrf_receiver_buffer);
 			    /*判断接收状态*/
           if(status == RX_DR)
 
@@ -315,39 +395,60 @@ static  void  AppTaskNrfReceiver (void)
                         nrf_receiver_buffer.key_value  == NRF_KEY_FORWARD ||
                         nrf_receiver_buffer.Y_angle < -NRF_EULER_THRE)
                     {
-                        nrf_order = GO_FORWARD;
+                        _order = GO_FORWARD;
 										}
                 if(nrf_receiver_buffer.car_speed == NRF_ROCKER_BACKWARD ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_BACKWARD ||
                         nrf_receiver_buffer.Y_angle > NRF_EULER_THRE)
                     {
-                        nrf_order = GO_BACKWARD;
+                        _order = GO_BACKWARD;
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_LEFT ||
                         nrf_receiver_buffer.key_value  == NRF_KEY_LEFT ||
                         nrf_receiver_buffer.X_angle > NRF_EULER_THRE)
                     {
-											  nrf_order = TURN_LEFT;
+											  _order = TURN_LEFT;
 										}
                 if(nrf_receiver_buffer.car_angle == NRF_ROCKER_RIGHT ||
                         nrf_receiver_buffer.key_value == NRF_KEY_RIGHT ||
                         nrf_receiver_buffer.X_angle < -NRF_EULER_THRE)
                     {
-                        nrf_order = TURN_RIGHT;
+                        _order = TURN_RIGHT;
 										}
+//								if(nrf_receiver_buffer.key_value == NRF_KEY_LEG1_UP)
+//								   {
+//									      _order = LIFT_LEG1;
+//								   }
+//								if(nrf_receiver_buffer.key_value == NRF_KEY_LEG3_UP)
+//								   {
+//									      _order = LIFT_LEG3;
+//								   }
+//								if(nrf_receiver_buffer.key_value == NRF_KEY_LEG4_UP)
+//								   {
+//									      _order = LIFT_LEG4;
+//								   }
+//								if(nrf_receiver_buffer.key_value == NRF_KEY_LEG6_UP)
+//								   {
+//									      _order = LIFT_LEG6;
+//								   }
                 if(nrf_receiver_buffer.car_speed == NRF_STOP && 
 									 nrf_receiver_buffer.car_angle == NRF_STOP && 
 								   nrf_receiver_buffer.key_value == NRF_STOP && 
 								   fabs(nrf_receiver_buffer.X_angle) < NRF_EULER_SAFE && 
 								   fabs(nrf_receiver_buffer.Y_angle) < NRF_EULER_SAFE )
                     {
-                        nrf_order = STOP;
+                        _order = STOP;
 										}
 
             }
+						bsp_LedOff(LED1);
+						bsp_LedOff(LED2);
+						bsp_LedToggle(LED0);
 //			  OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
-					OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
-		}			
+				}	
+				
+				OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
+	}				
 }
 
 /*
@@ -364,14 +465,12 @@ static void AppTaskRobotControl(void *p_arg)
 	OS_ERR   err;
 	(void)p_arg;
 	 
-	/*复位动作 5s*/
-	 Position_Reset(2);
 	/*站立动作*/
 	 Stand_Up();
    
 	 while(1)
 	{
-		  switch(nrf_order)									
+		  switch(_order)									
 			{
 				case GO_FORWARD:
    		                 /*向前走1步，步长180mm，占空比50%*/
@@ -389,10 +488,31 @@ static void AppTaskRobotControl(void *p_arg)
 					             /*向右转20°*/
 											 Turn_Around(DIRECTION_C, DEF_TURN_ANGLE, 1);
 				break;
+				case LIFT_LEG1:
+											 Lift_down_legx(ID_LEG_1);
+					break;
+				case LIFT_LEG3:
+											 Lift_down_legx(ID_LEG_3);
+					break;
+				case LIFT_LEG4:
+											 Lift_down_legx(ID_LEG_4);
+					break;
+				case LIFT_LEG6:
+											 Lift_down_legx(ID_LEG_6);
+					break;
 				case STOP:
 					             /*停止*/
 											 Stand_Up();
-				break;
+				  break;
+				case STAMP:   /*跺脚*/
+					            Stamp(1);
+					break;
+				case TURN_HEAD_LEFT:
+					
+					break;
+				case TURN_HEAD_RIGHT:
+					
+					break;
 				default:
 					break;
 			}
@@ -414,7 +534,7 @@ static  void  AppTaskCreate (void)
 			OS_ERR      err;
 			
 
-			OSSemCreate(&SEM_NRFRX, "SEM_NRFReceiver", 0, &err);
+//			OSSemCreate(&SEM_NRFRX, "SEM_NRFReceiver", 0, &err);
 			/**************创建COM任务*********************/
 			OSTaskCreate((OS_TCB       *)&AppTaskCOMTCB,            
 										 (CPU_CHAR     *)"App Task COM",

@@ -128,7 +128,7 @@ static void Ultrasnio_Port_Init(void)
 **********************************************************************
 */
 //³¬Éù²¨³õÊ¼»¯
-void Ultrasnio_Init(void)
+void bsp_ultrasnio_init(void)
 {
 			Ultrasnio_Port_Init();
 			TIM12_PWMInCap_Init();

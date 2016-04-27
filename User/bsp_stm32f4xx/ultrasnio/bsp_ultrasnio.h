@@ -1,7 +1,7 @@
 /*
 *********************************************************************************************************
 *
-*	模块名称 : 通用函数模块
+*	模块名称 : 超声波模块
 *	文件名称 : bsp_ultrasnio.h
 *	版    本 : V1.0
 *	说    明 : 
@@ -39,7 +39,7 @@
 #define  Ultranio_Echo_1         GPIO_ReadInputDataBit(ULTRASNIO_PORT , ULTRASNIO_ECHO_1)
 #define  Ultranio_Echo_2         GPIO_ReadInputDataBit(ULTRASNIO_PORT , ULTRASNIO_ECHO_2)
 
-extern void Ultrasnio_Init(void);
+extern void bsp_ultrasnio_init(void);
 extern void Ultrasnio_1_update(void);
 extern void Ultrasnio_2_update(void);
 

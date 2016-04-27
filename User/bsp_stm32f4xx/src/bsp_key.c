@@ -32,84 +32,6 @@
 	#define KEY_COUNT    8	  这个在 bsp_key.h 文件中定义
 */
 
-#ifdef STM32_X3		/* 安富莱 STM32-X3 开发板 */
-	/*
-		安富莱STM32-X 按键口线分配：
-			K1键       : PC13 (低电平表示按下)
-			K2键       : PC0  (低电平表示按下)
-			K3键       : PC1  (低电平表示按下)
-			摇杆UP键   : PC2  (低电平表示按下)
-			摇杆DOWN键 : PC3  (低电平表示按下)
-			摇杆LEFT键 : PC4  (低电平表示按下)
-			摇杆RIGHT键: PA0  (低电平表示按下)
-			摇杆OK键   : PA1  (低电平表示按下)
-	*/
-	#define RCC_ALL_KEY 	(RCC_AHB1Periph_GPIOA | RCC_AHB1Periph_GPIOC)	/* 按键口对应的RCC时钟 */
-
-	#define GPIO_PORT_K1    GPIOC
-	#define GPIO_PIN_K1	    GPIO_Pin_13
-
-	#define GPIO_PORT_K2    GPIOC
-	#define GPIO_PIN_K2	    GPIO_Pin_0
-
-	#define GPIO_PORT_K3    GPIOC
-	#define GPIO_PIN_K3	    GPIO_Pin_1
-
-	#define GPIO_PORT_K4    GPIOC
-	#define GPIO_PIN_K4	    GPIO_Pin_3
-
-	#define GPIO_PORT_K5    GPIOC
-	#define GPIO_PIN_K5	    GPIO_Pin_4
-
-	#define GPIO_PORT_K6    GPIOC
-	#define GPIO_PIN_K6	    GPIO_Pin_2
-
-	#define GPIO_PORT_K7    GPIOA
-	#define GPIO_PIN_K7	    GPIO_Pin_1
-
-	#define GPIO_PORT_K8    GPIOA
-	#define GPIO_PIN_K8	    GPIO_Pin_0
-
-#else	/* STM32_V5 */
-	/*
-		安富莱STM32-V5 按键口线分配：
-			K1 键      : PI8   (低电平表示按下)
-			K2 键      : PC13  (低电平表示按下)
-			K3 键      : PI11  (低电平表示按下)
-			摇杆UP键   : PH2   (低电平表示按下)
-			摇杆DOWN键 : PH3   (低电平表示按下)
-			摇杆LEFT键 : PF11  (低电平表示按下)
-			摇杆RIGHT键: PG7   (低电平表示按下)
-			摇杆OK键   : PH15  (低电平表示按下)
-	*/
-
-	/* 按键口对应的RCC时钟 */
-	#define RCC_ALL_KEY 	  RCC_AHB1Periph_GPIOE 
-
-	#define GPIO_PORT_K1    GPIOE
-	#define GPIO_PIN_K1	    GPIO_Pin_4
-
-//	#define GPIO_PORT_K2    GPIOC
-//	#define GPIO_PIN_K2	    GPIO_Pin_13
-
-//	#define GPIO_PORT_K3    GPIOI
-//	#define GPIO_PIN_K3	    GPIO_Pin_11
-
-//	#define GPIO_PORT_K4    GPIOH
-//	#define GPIO_PIN_K4	    GPIO_Pin_2
-
-//	#define GPIO_PORT_K5    GPIOH
-//	#define GPIO_PIN_K5	    GPIO_Pin_3
-
-//	#define GPIO_PORT_K6    GPIOF
-//	#define GPIO_PIN_K6	    GPIO_Pin_11
-
-//	#define GPIO_PORT_K7    GPIOG
-//	#define GPIO_PIN_K7	    GPIO_Pin_7
-
-//	#define GPIO_PORT_K8    GPIOH
-//	#define GPIO_PIN_K8	    GPIO_Pin_15
-#endif
 
 static KEY_T s_tBtn[KEY_COUNT];
 static KEY_FIFO_T s_tKey;		/* 按键FIFO变量,结构体 */
@@ -298,7 +220,7 @@ static void bsp_InitKeyHard(void)
 	/* 第2步：配置所有的按键GPIO为浮动输入模式(实际上CPU复位后就是输入状态) */
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;		/* 设为输入口 */
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;	/* 无需上下拉电阻 */
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;	/* 无需上下拉电阻 */
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	/* IO口最大速度 */
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_K1;

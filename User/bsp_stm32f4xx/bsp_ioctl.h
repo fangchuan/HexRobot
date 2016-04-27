@@ -61,8 +61,8 @@
 
 
 /* 直接操作寄存器的方法控制IO */
-#define	digitalHi(p,i)			{p->BSRRH=i;}			//设置为高电平		
-#define digitalLo(p,i)			{p->BSRRL=i;}				//输出低电平
+#define	digitalHi(p,i)			{p->BSRRL=i;}			//设置为高电平		
+#define digitalLo(p,i)			{p->BSRRH=i;}				//输出低电平
 #define digitalToggle(p,i)		{p->ODR ^=i;}			//输出反转状态
 
 #endif /*_IO_OPERATION_H*/

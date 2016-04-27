@@ -84,7 +84,7 @@
 */
 #include "gait_control.h"
 #include "common.h"
-
+#include "protocol.h"
 #endif
 
 /***************************** °¢²¨ÂÞ¿Æ¼¼ www.apollorobot.com (END OF FILE) *********************************/

@@ -55,11 +55,11 @@
 			PG15/USART6_CTS
 	*/
 	#define	UART1_FIFO_EN	1
-	#define	UART2_FIFO_EN	1
-	#define	UART3_FIFO_EN	1
+	#define	UART2_FIFO_EN	0
+	#define	UART3_FIFO_EN	0
 	#define	UART4_FIFO_EN	0
 	#define	UART5_FIFO_EN	0
-	#define	UART6_FIFO_EN	1
+	#define	UART6_FIFO_EN	0
 
 	/* RS485Ð¾Æ¬·¢ËÍÊ¹ÄÜGPIO, PB2 */
 	#define RCC_RS485_TXEN 	RCC_AHB1Periph_GPIOB
@@ -153,6 +153,8 @@ void USART_SetBaudRate(USART_TypeDef* USARTx, uint32_t BaudRate);
 void RS485_SendBuf(uint8_t *_ucaBuf, uint16_t _usLen);
 void RS485_SendStr(char *_pBuf);
 void RS485_SetBaud(uint32_t _baud);
+
+extern int get_order_from_uart(uint8_t *order);
 
 #endif
 

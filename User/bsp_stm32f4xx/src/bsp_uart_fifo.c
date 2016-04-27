@@ -21,13 +21,13 @@
 */
 
 #include "bsp.h"
-
+#include "protocol.h"
 
 /* 定义每个串口结构体变量 */
 #if UART1_FIFO_EN == 1
-	static UART_T g_tUart1;
-	static uint8_t g_TxBuf1[UART1_TX_BUF_SIZE];		/* 发送缓冲区 */
-	static uint8_t g_RxBuf1[UART1_RX_BUF_SIZE];		/* 接收缓冲区 */
+	UART_T g_tUart1;
+	uint8_t g_TxBuf1[UART1_TX_BUF_SIZE];		/* 发送缓冲区 */
+	uint8_t g_RxBuf1[UART1_RX_BUF_SIZE];		/* 接收缓冲区 */
 #endif
 
 #if UART2_FIFO_EN == 1
@@ -84,7 +84,7 @@ void bsp_InitUart(void)
 
 	InitHardUart();		/* 配置串口的硬件参数(波特率等) */
 
-	RS485_InitTXE();	/* 配置RS485芯片的发送使能硬件，配置为推挽输出 */
+//	RS485_InitTXE();	/* 配置RS485芯片的发送使能硬件，配置为推挽输出 */
 
 	ConfigUartNVIC();	/* 配置串口中断 */
 }
@@ -112,7 +112,7 @@ UART_T *ComToUart(COM_PORT_E _ucPort)
 		#if UART2_FIFO_EN == 1
 			return &g_tUart2;
 		#else
-			return;
+			return 0;
 		#endif
 	}
 	else if (_ucPort == COM3)
@@ -178,7 +178,7 @@ USART_TypeDef *ComToUSARTx(COM_PORT_E _ucPort)
 		#if UART2_FIFO_EN == 1
 			return USART2;
 		#else
-			return;
+			return 0;
 		#endif
 	}
 	else if (_ucPort == COM3)
@@ -1054,7 +1054,7 @@ static void ConfigUartNVIC(void)
 #if UART1_FIFO_EN == 1
 	/* 使能串口1中断 */
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 13;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
@@ -1120,31 +1120,6 @@ static void UartSend(UART_T *_pUart, uint8_t *_ucaBuf, uint16_t _usLen)
 	for (i = 0; i < _usLen; i++)
 	{
 		/* 如果发送缓冲区已经满了，则等待缓冲区空 */
-	#if 0
-		/*
-			在调试GPRS例程时，下面的代码出现死机，while 死循环
-			原因： 发送第1个字节时 _pUart->usTxWrite = 1；_pUart->usTxRead = 0;
-			将导致while(1) 无法退出
-		*/
-		while (1)
-		{
-			uint16_t usRead;
-
-			DISABLE_INT();
-			usRead = _pUart->usTxRead;
-			ENABLE_INT();
-
-			if (++usRead >= _pUart->usTxBufSize)
-			{
-				usRead = 0;
-			}
-
-			if (usRead != _pUart->usTxWrite)
-			{
-				break;
-			}
-		}
-	#else
 		/* 当 _pUart->usTxBufSize == 1 时, 下面的函数会死掉(待完善) */
 		while (1)
 		{
@@ -1159,7 +1134,6 @@ static void UartSend(UART_T *_pUart, uint8_t *_ucaBuf, uint16_t _usLen)
 				break;
 			}
 		}
-	#endif
 
 		/* 将新数据填入发送缓冲区 */
 		_pUart->pTxBuf[_pUart->usTxWrite] = _ucaBuf[i];
@@ -1248,13 +1222,11 @@ static void UartIRQ(UART_T *_pUart)
 		}
 
 		/* 回调函数,通知应用程序收到新数据,一般是发送1个消息或者设置一个标记 */
-		//if (_pUart->usRxWrite == _pUart->usRxRead)
-		//if (_pUart->usRxCount == 1)
 		{
-			if (_pUart->ReciveNew)
-			{
-				_pUart->ReciveNew(ch);
-			}
+//			if (_pUart->ReciveNew)
+//			{
+//				_pUart->ReciveNew(ch);
+//			}
 		}
 	}
 
@@ -1444,7 +1416,7 @@ void USART6_IRQHandler(void)
 */
 int fputc(int ch, FILE *f)
 {
-#if 1	/* 将需要printf的字符通过串口中断FIFO发送出去，printf函数会立即返回 */
+#if 0	/* 将需要printf的字符通过串口中断FIFO发送出去，printf函数会立即返回 */
 	comSendChar(COM1, ch);
 
 	return ch;
@@ -1471,7 +1443,7 @@ int fputc(int ch, FILE *f)
 int fgetc(FILE *f)
 {
 
-#if 1	/* 从串口接收FIFO中取1个数据, 只有取到数据才返回 */
+#if 0	/* 从串口接收FIFO中取1个数据, 只有取到数据才返回 */
 	uint8_t ucData;
 
 	while(comGetChar(COM1, &ucData) == 0);
@@ -1484,5 +1456,42 @@ int fgetc(FILE *f)
 	return (int)USART_ReceiveData(USART1);
 #endif
 }
+
+/*
+*********************************************************************************************************
+*	函 数 名: get_order_from_uart
+*	功能说明: 从接收缓冲区获取最先入队的一帧命令
+*	形    参: 无
+*	返 回 值: 返回0说明接收命令帧成功， -1说明接收命令帧出错
+*********************************************************************************************************
+*/
+int get_order_from_uart(uint8_t *order)
+{
+	   uint16_t i ;
+		 uint8_t  ch = 0;
+	   uint16_t length;
+	
+		 for(i = 0; ; i ++)
+		{
+			  if(UartGetChar(&g_tUart1, &ch))
+				{//成功读取到数据
+					order[i] = ch;
+					if(ch == PROTOCOL_END)
+						break;
+			  }
+				else
+				{
+					return -1;
+				}
+		}
+		 length = order[PROTOCOL_LENGTH_BIT];
+	   if(order[0] != PROTOCOL_STX || order[length-1] != PROTOCOL_END)
+		 {//错误帧，丢弃
+			 return -1;
+		 }
+		 else
+			 return  0;
+}
+
 
 /***************************** 阿波罗科技 www.apollorobot.com (END OF FILE) *********************************/

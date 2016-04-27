@@ -17,37 +17,6 @@
 
 #include "bsp.h"
 
-/*
-	该程序适用于安富莱STM32-X4、STM32-F4开发板
-
-	如果用于其它硬件，请修改GPIO定义和 IsKeyDown1 - IsKeyDown8 函数
-
-	如果用户的LED指示灯个数小于4个，可以将多余的LED全部定义为和第1个LED一样，并不影响程序功能
-*/
-
-#ifdef STM32_X3		/* 安富莱 STM32-X4 开发板 */
-	/*
-		安富莱STM32-X4 LED口线分配：
-			LED1       : PE2 (低电平点亮，高电平熄灭)
-			LED2       : PE3 (低电平点亮，高电平熄灭)
-			LED3       : PE4 (低电平点亮，高电平熄灭)
-			LED4       : PE5 (低电平点亮，高电平熄灭)
-	*/
-	#define RCC_ALL_LED 	RCC_AHB1Periph_GPIOE	/* 按键口对应的RCC时钟 */
-
-	#define GPIO_PORT_LED1  GPIOE
-	#define GPIO_PIN_LED1	GPIO_Pin_0
-
-	#define GPIO_PORT_LED2  GPIOE
-	#define GPIO_PIN_LED2	GPIO_Pin_1
-
-	#define GPIO_PORT_LED3  GPIOE
-	#define GPIO_PIN_LED3	GPIO_Pin_2
-
-	#define GPIO_PORT_LED4  GPIOE
-	#define GPIO_PIN_LED4	GPIO_Pin_3
-
-#else	/* STM32_F4 */
 	/*
 		安富莱STM32-V5 开发板LED口线分配：
 			LD1     : PI10/TP_NCS          (低电平点亮，高电平熄灭)
@@ -70,7 +39,6 @@
 
 	#define GPIO_PORT_LED4  GPIOE
 	#define GPIO_PIN_LED4	GPIO_Pin_3
-#endif
 
 /*
 *********************************************************************************************************
@@ -92,10 +60,6 @@ void bsp_InitLed(void)
 		由于将GPIO设置为输出时，GPIO输出寄存器的值缺省是0，因此会驱动LED点亮.
 		这是我不希望的，因此在改变GPIO为输出前，先关闭LED指示灯
 	*/
-	bsp_LedOff(1);
-	bsp_LedOff(2);
-	bsp_LedOff(3);
-	bsp_LedOff(4);
 
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;		/* 设为输出口 */
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;		/* 设为推挽模式 */
@@ -113,47 +77,22 @@ void bsp_InitLed(void)
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_LED4;
 	GPIO_Init(GPIO_PORT_LED4, &GPIO_InitStructure);
+	
+	bsp_LedOff(1);
+	bsp_LedOff(2);
+	bsp_LedOff(3);
+	bsp_LedOff(4);
 }
 
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_LedOn
 *	功能说明: 点亮指定的LED指示灯。
-*	形    参:  _no : 指示灯序号，范围 1 - 4
+*	形    参:  _no : 指示灯序号，范围 1 - 4      BSRRL为置位寄存器
 *	返 回 值: 无
 *********************************************************************************************************
 */
 void bsp_LedOn(uint8_t _no)
-{
-	_no--;
-
-	if (_no == 0)
-	{
-		GPIO_PORT_LED1->BSRRH = GPIO_PIN_LED1;
-	}
-	else if (_no == 1)
-	{
-		GPIO_PORT_LED2->BSRRH = GPIO_PIN_LED2;
-	}
-	else if (_no == 2)
-	{
-		GPIO_PORT_LED3->BSRRH = GPIO_PIN_LED3;
-	}
-	else if (_no == 3)
-	{
-		GPIO_PORT_LED4->BSRRH = GPIO_PIN_LED4;
-	}
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: bsp_LedOff
-*	功能说明: 熄灭指定的LED指示灯。
-*	形    参:  _no : 指示灯序号，范围 1 - 4
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void bsp_LedOff(uint8_t _no)
 {
 	_no--;
 
@@ -172,6 +111,36 @@ void bsp_LedOff(uint8_t _no)
 	else if (_no == 3)
 	{
 		GPIO_PORT_LED4->BSRRL = GPIO_PIN_LED4;
+	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: bsp_LedOff
+*	功能说明: 熄灭指定的LED指示灯。
+*	形    参:  _no : 指示灯序号，范围 1 - 4    BSRRH为复位寄存器
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void bsp_LedOff(uint8_t _no)
+{
+	_no--;
+
+	if (_no == 0)
+	{
+		GPIO_PORT_LED1->BSRRH = GPIO_PIN_LED1;
+	}
+	else if (_no == 1)
+	{
+		GPIO_PORT_LED2->BSRRH = GPIO_PIN_LED2;
+	}
+	else if (_no == 2)
+	{
+		GPIO_PORT_LED3->BSRRH = GPIO_PIN_LED3;
+	}
+	else if (_no == 3)
+	{
+		GPIO_PORT_LED4->BSRRH = GPIO_PIN_LED4;
 	}
 }
 

@@ -121,6 +121,15 @@
 #define PWM_TO_ANGLE(pwm)    (float)((pwm - PWM_MIN)*0.25)
 	
 //
+//机器人控制模式
+//
+typedef enum _CONTROLMODE{
+	            NRF_MODE = 0,
+	            ANDROID_MODE = 1,
+	            PC_MODE = 2,
+	
+}_ControlMode;
+//
 //机器人运动类型
 //
 typedef enum _ORDER {
@@ -133,6 +142,9 @@ typedef enum _ORDER {
 	           LIFT_LEG3  = 7,
 	           LIFT_LEG4  = 8,
 	           LIFT_LEG6  = 9,
+	           STAMP      = 10,
+	           TURN_HEAD_LEFT = 11,
+	           TURN_HEAD_RIGHT = 12,
 }_Order;
 //
 //robot control task ADT

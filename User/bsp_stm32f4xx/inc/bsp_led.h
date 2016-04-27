@@ -17,6 +17,11 @@
 #ifndef __BSP_LED_H
 #define __BSP_LED_H
 
+#define  LED0   1
+#define  LED1   2
+#define  LED2   3
+#define  LED3   4
+
 /* 供外部调用的函数声明 */
 void bsp_InitLed(void);
 void bsp_LedOn(uint8_t _no);

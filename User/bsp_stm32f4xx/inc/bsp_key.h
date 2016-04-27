@@ -14,6 +14,35 @@
 #ifndef __BSP_KEY_H
 #define __BSP_KEY_H
 
+	/* STM32_V5 */
+
+	/* 按键口对应的RCC时钟 */
+#define RCC_ALL_KEY 	  RCC_AHB1Periph_GPIOE 
+
+#define GPIO_PORT_K1    GPIOE
+#define GPIO_PIN_K1	    GPIO_Pin_4
+
+//	#define GPIO_PORT_K2    GPIOC
+//	#define GPIO_PIN_K2	    GPIO_Pin_13
+
+//	#define GPIO_PORT_K3    GPIOI
+//	#define GPIO_PIN_K3	    GPIO_Pin_11
+
+//	#define GPIO_PORT_K4    GPIOH
+//	#define GPIO_PIN_K4	    GPIO_Pin_2
+
+//	#define GPIO_PORT_K5    GPIOH
+//	#define GPIO_PIN_K5	    GPIO_Pin_3
+
+//	#define GPIO_PORT_K6    GPIOF
+//	#define GPIO_PIN_K6	    GPIO_Pin_11
+
+//	#define GPIO_PORT_K7    GPIOG
+//	#define GPIO_PIN_K7	    GPIO_Pin_7
+
+//	#define GPIO_PORT_K8    GPIOH
+//	#define GPIO_PIN_K8	    GPIO_Pin_15
+
 #define KEY_COUNT    10	   					/* 按键个数, 8个独立建 + 2个组合键 */
 
 /* 根据应用程序的功能重命名按键宏 */
@@ -167,6 +196,10 @@ uint8_t bsp_GetKeyState(KEY_ID_E _ucKeyID);
 void bsp_SetKeyParam(uint8_t _ucKeyID, uint16_t _LongTime, uint8_t  _RepeatSpeed);
 void bsp_ClearKey(void);
 
+
+#define   KEY_STATE_DOWN   0
+#define   KEY_STATE_UP     1
+#define   GetKeyState()    GPIO_ReadInputDataBit( GPIO_PORT_K1, GPIO_PIN_K1)
 #endif
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/
