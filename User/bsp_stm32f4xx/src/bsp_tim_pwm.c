@@ -926,6 +926,7 @@ static void bsp_Servo_TIMConfig(void)
 			TIM_TimeBaseInit(HIP_TIM_1, &TIM_TimeBaseStructure);
 			TIM_TimeBaseInit(HIP_TIM_2, &TIM_TimeBaseStructure);
 	    TIM_TimeBaseInit(ANKLE_TIM_1, &TIM_TimeBaseStructure);
+	    TIM_TimeBaseInit(HEADTAIL_TIM, &TIM_TimeBaseStructure);
 			/* PWM1 Mode configuration: Channel1 */
 			TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 			TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;

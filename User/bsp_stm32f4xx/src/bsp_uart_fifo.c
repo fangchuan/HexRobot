@@ -715,7 +715,7 @@ static void InitHardUart(void)
 		注意: 不要在此处打开发送中断
 		发送中断使能在SendUart()函数打开
 	*/
-	USART_Cmd(USART1, ENABLE);		/* 使能串口 */
+	USART_Cmd(USART1, DISABLE);		/* 使能串口 */
 
 	/* CPU的小缺陷：串口配置好，如果直接Send，则第1个字节发送不出去
 		如下语句解决第1个字节无法正确发送出去的问题 */
@@ -1221,13 +1221,13 @@ static void UartIRQ(UART_T *_pUart)
 			_pUart->usRxCount++;
 		}
 
-		/* 回调函数,通知应用程序收到新数据,一般是发送1个消息或者设置一个标记 */
-		{
+//		/* 回调函数,通知应用程序收到新数据,一般是发送1个消息或者设置一个标记 */
+//		{
 //			if (_pUart->ReciveNew)
 //			{
 //				_pUart->ReciveNew(ch);
 //			}
-		}
+//		}
 	}
 
 	/* 处理发送缓冲区空中断 */

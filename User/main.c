@@ -83,18 +83,32 @@ static  CPU_STK  AppTaskCOMStk[APP_CFG_TASK_COM_STK_SIZE];
 static  OS_TCB   AppTaskUserIFTCB;
 static  CPU_STK  AppTaskUserIFStk[APP_CFG_TASK_USER_IF_STK_SIZE];
 
-//static  OS_TCB   AppTaskGUITCB;
-//static  CPU_STK  AppTaskGUIStk[APP_CFG_TASK_GUI_STK_SIZE];
+static  OS_TCB   AppTaskSensorTCB;
+static  CPU_STK  AppTaskSensorStk[APP_CFG_TASK_SENSOR_STK_SIZE];
 
 static  OS_TCB   AppTaskRobotTCB;
 static  CPU_STK  AppTaskRobotStk[APP_CFG_TASK_ROBOT_STK_SIZE];
+
 
 //static  OS_SEM     	SEM_NRFRX;	   //用于NRF接收数据
 
 static _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
 static _Order     _order = STOP;     //nrf命令类型
 static uint8_t android_order[PROTOCOL_MAXLENGTH];//Android命令数据报
-static _ControlMode  manual_mode = NRF_MODE;
+static _ControlMode  manual_mode ;
+static uint32_t   timestamp_route_init ;//路由器启动的时间戳--44s
+
+/*********************************************************************
+*
+*       Global data
+*
+**********************************************************************
+*/
+
+//定时器变量
+OS_TMR             Tmr_1s;
+
+_Sensor sensor;//
 /*
 *********************************************************************************************************
 *                                      函数声明
@@ -122,6 +136,7 @@ int main(void)
 {
     OS_ERR  err;                                         
     
+	  
 	/* 初始化uC/OS-III 内核 */
     OSInit(&err);  
 
@@ -198,16 +213,35 @@ static void DispTaskInfo(void)
 *********************************************************************************************************
 *	函 数 名: _cbOfTmr1
 *	功能说明: 软件定时器的回调函数
+*           负责在开机44S后使能UART1，因为这44S是路由器启动的时间
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
 *********************************************************************************************************
 */
 static void _cbOfTmr1(OS_TMR *p_tmr, void *p_arg)
 {
-
+    OS_ERR   err;
     (void)p_arg;
-    Ultrasnio_1_update();			//每100ms调用一次，触发一次超声波数据更新
-		Ultrasnio_2_update();
+    
+	   timestamp_route_init ++;
+		 if(timestamp_route_init >= 44)
+		 {
+			  OSTmrDel(&Tmr_1s, &err); 
+			  bsp_LedOff(LED0);
+			  bsp_LedOff(LED1);
+			  bsp_LedOff(LED2);
+			  bsp_LedOff(LED3);
+			  //开启UART1
+	      USART_Cmd(USART1, ENABLE);	
+		 }
+		 else
+		 {
+					bsp_LedToggle(LED0);
+					bsp_LedToggle(LED1);
+					bsp_LedToggle(LED2);
+					bsp_LedToggle(LED3);
+					
+		 }
 }
 /*
 *********************************************************************************************************
@@ -221,14 +255,13 @@ static void _cbOfTmr1(OS_TMR *p_tmr, void *p_arg)
 static  void  AppTaskStart (void *p_arg)
 {
 
-	OS_ERR      err;
-  //定时器变量
-  OS_TMR             Tmr_100ms;
+	  OS_ERR      err;
+
    (void)p_arg;
 	
-	CPU_Init();
- 	bsp_Init();
-	BSP_Tick_Init();                      
+	  CPU_Init();
+   	bsp_Init();
+	  BSP_Tick_Init();                      
 
 #if OS_CFG_STAT_TASK_EN > 0u
      OSStatTaskCPUUsageInit(&err);   
@@ -240,18 +273,18 @@ static  void  AppTaskStart (void *p_arg)
     
 	  /* 创建任务 */
     AppTaskCreate(); 
-	    //创建定时器  OS_CFG_TMR_TASK_RATE_HZ = 100HZ
-    OSTmrCreate ((OS_TMR              *)&Tmr_100ms,
-                 (CPU_CHAR            *)"MyTimer 100ms",
-                 (OS_TICK              )10,                  //第一次延时设置为100ms，
-                 (OS_TICK              )10,                  //定时器周期100ms
+	    //创建定时器  OS_CFG_TMR_TASK_RATE_HZ = 10HZ
+    OSTmrCreate ((OS_TMR              *)&Tmr_1s,
+                 (CPU_CHAR            *)"MyTimer 1s",
+                 (OS_TICK              )10,                  //第一次延时设置为1s，
+                 (OS_TICK              )10,                  //定时器周期1s
                  (OS_OPT               )OS_OPT_TMR_PERIODIC,//模式设置为重复模式
                  (OS_TMR_CALLBACK_PTR  )_cbOfTmr1,          //回调函数
                  (void                *)0,                  //参数设置为0
                  (OS_ERR              *)err);
 								 
 		//启动定时器
-    OSTmrStart((OS_TMR *)&Tmr_100ms,(OS_ERR *)err);
+    OSTmrStart((OS_TMR *)&Tmr_1s,(OS_ERR *)err);
 								 
     /*Delete task*/
     OSTaskDel(&AppTaskStartTCB,&err);
@@ -336,11 +369,12 @@ static void AppTaskUserIF(void *p_arg)
 {
 	uint8_t ucKeyCode;
   OS_ERR        err;
-	static uint8_t down_count =0;
+	uint8_t down_count =0;
 	(void)p_arg;	               /* 避免编译器报警 */
 
 	while (1) 
-	{   		
+	{   	
+        
 				ucKeyCode = GetKeyState();
 				
 				if (ucKeyCode == KEY_STATE_DOWN)
@@ -350,20 +384,20 @@ static void AppTaskUserIF(void *p_arg)
 					down_count ++;
 					if(down_count == 1)
 					{
-						manual_mode = ANDROID_MODE;
+						manual_mode = NRF_MODE;
 					}
 					if(down_count == 2)
 					{
-						manual_mode = PC_MODE;
+						manual_mode = ANDROID_MODE;
 					}
 					if(down_count == 3)
 					{
-						manual_mode = NRF_MODE;
+						manual_mode = PC_MODE;
 						down_count = 0;
 					}
 				}
 	
-        OSTimeDlyHMSM(0, 0, 0, 50,OS_OPT_TIME_HMSM_STRICT, &err);	   
+        OSTimeDlyHMSM(0, 0, 0, 20,OS_OPT_TIME_HMSM_STRICT, &err);	   
 	}
 }
 
@@ -373,6 +407,7 @@ static void AppTaskUserIF(void *p_arg)
 *	功能说明: 创建与NRF2401通讯的任务
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
+* 优 先 级: 5
 *********************************************************************************************************
 */
 static  void  AppTaskNrfReceiver (void)
@@ -450,14 +485,38 @@ static  void  AppTaskNrfReceiver (void)
 				OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
 	}				
 }
-
+/*
+*********************************************************************************************************
+*	函 数 名: AppTaskSensorUpdate
+*	功能说明: 传感器更新任务
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*	优 先 级: 3
+*********************************************************************************************************
+*/
+static void AppTaskSensorUpdate(void *p_arg)
+{
+	  OS_ERR    err;
+	  (void )p_arg;
+	
+		while(1)
+		{
+			Ultrasnio_1_update();
+			Ultrasnio_2_update();
+			sensor.candela_1 = Get_adc(ANOLOG_Sensor_1);
+			sensor.candela_2 = Get_adc(ANOLOG_Sensor_2);
+			sensor.candela_3 = Get_adc(ANOLOG_Sensor_3);
+			sensor.candela_4 = Get_adc(ANOLOG_Sensor_4);
+			OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
+		}
+}
 /*
 *********************************************************************************************************
 *	函 数 名: AppTaskRobotControl
 *	功能说明: 机器人运动控制任务
 *	形    参: p_arg 是在创建该任务时传递的形参
 *	返 回 值: 无
-*	优 先 级: 4
+*	优 先 级: 2
 *********************************************************************************************************
 */
 static void AppTaskRobotControl(void *p_arg)
@@ -508,10 +567,10 @@ static void AppTaskRobotControl(void *p_arg)
 					            Stamp(1);
 					break;
 				case TURN_HEAD_LEFT:
-					
+											Shake_Head(DIRECTION_CC);
 					break;
 				case TURN_HEAD_RIGHT:
-					
+											Shake_Head(DIRECTION_C);
 					break;
 				default:
 					break;
@@ -545,7 +604,7 @@ static  void  AppTaskCreate (void)
 										 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE / 10,
 										 (CPU_STK_SIZE  )APP_CFG_TASK_COM_STK_SIZE,
 										 (OS_MSG_QTY    )0,
-										 (OS_TICK       )0,
+										 (OS_TICK       )5,
 										 (void         *)0,
 										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
 										 (OS_ERR       *)&err);
@@ -560,7 +619,7 @@ static  void  AppTaskCreate (void)
 										 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE / 10,
 										 (CPU_STK_SIZE  )APP_CFG_TASK_USER_IF_STK_SIZE,
 										 (OS_MSG_QTY    )0,
-										 (OS_TICK       )0,
+										 (OS_TICK       )0,  //因为与NRF任务相同优先级，所以设置他的轮转时间片为5ms
 										 (void         *)0,
 										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
 										 (OS_ERR       *)&err);
@@ -574,6 +633,21 @@ static  void  AppTaskCreate (void)
 										 (CPU_STK      *)&AppTaskNRFStk[0],
 										 (CPU_STK_SIZE  )APP_CFG_TASK_NRF_STK_SIZE / 10,
 										 (CPU_STK_SIZE  )APP_CFG_TASK_NRF_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )5,   //因为与串口任务相同优先级，所以设置他的轮转时间片为5ms
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
+										 
+			/**************创建传感器更新任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskSensorTCB,             
+										 (CPU_CHAR     *)"App Task Sensor",
+										 (OS_TASK_PTR   )AppTaskSensorUpdate, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_SENSOR_PRIO,
+										 (CPU_STK      *)&AppTaskSensorStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_SENSOR_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_SENSOR_STK_SIZE,
 										 (OS_MSG_QTY    )0,
 										 (OS_TICK       )0,
 										 (void         *)0,

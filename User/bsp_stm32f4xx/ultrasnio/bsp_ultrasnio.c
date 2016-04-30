@@ -34,7 +34,7 @@ uint16_t  TIM12_T;
 *
 **********************************************************************
 */
-_Ultrasnio ult;//当前测得距离，单位为cm
+extern _Sensor sensor;//
 
 /*********************************************************************
 *
@@ -180,7 +180,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 						{
 							TIM12_T = 0;
 						}	
-						ult.left_distance = (float)((TIM12CH1_Fall - TIM12CH1_Rise + TIM12_T)*0.018);  //得到总的高电平时间，值域
+						sensor.left_distance = (float)((TIM12CH1_Fall - TIM12CH1_Rise + TIM12_T)*0.018);  //得到总的高电平时间，值域
 						TIM_OC1PolarityConfig(TIM12,TIM_ICPolarity_Rising); //CC4P=0 设置为上升沿捕获		
 				}		    
 		}
@@ -206,7 +206,7 @@ void TIM8_BRK_TIM12_IRQHandler(void)
 						{
 							TIM12_T = 0;
 						}	
-						ult.right_distance = (float)((TIM12CH2_Fall - TIM12CH2_Rise + TIM12_T)*0.018);  //得到总的高电平时间，值域
+						sensor.right_distance = (float)((TIM12CH2_Fall - TIM12CH2_Rise + TIM12_T)*0.018);  //得到总的高电平时间，值域
 						TIM_OC2PolarityConfig(TIM12,TIM_ICPolarity_Rising); //CC4P=0 设置为上升沿捕获		
 				}		    
 		}

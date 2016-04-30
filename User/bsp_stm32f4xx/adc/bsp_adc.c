@@ -94,7 +94,7 @@ float Get_adc(u8 ch)
 {
 	  float  temp;
 	
-			//设置转换序列	  		 
+		//设置转换序列	  		 
 		ADC1->SQR3&=0XFFFFFFE0;//规则序列1 通道ch
 		ADC1->SQR3|=ch;		  			    
 		ADC1->CR2|=1<<30;       //启动规则转换通道 

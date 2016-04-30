@@ -816,21 +816,21 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 						   /*旋转机体 a/4*/
 						   update_body_position(a0, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					     /*A组腿转动a度*/
                Turn_Aleg(a0, a_def);
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 							 Putdown_Aleg();
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 							 /*机体转动到a/2*/	
 							 update_body_position(a1, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					     /*B组腿转动a度*/
 					     Turn_Bleg(a1, a_def);
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 							 Putdown_Bleg();
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 							 
 						break;
 					//逆时针--向左转
@@ -846,27 +846,28 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 						   /*旋转机体 a/4*/
 						   update_body_position(a0, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					     /*B组腿转动a度*/
                Turn_Bleg(a0, a_def);
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 								
 							 Putdown_Bleg();
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 							 /*机体转动到a/2*/	
 							 update_body_position(a1, position_body, position_world);
 					     Drive_Hip();
-					     OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+					     OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 					     /*A组腿转动a度*/
 					     Turn_Aleg(a1, a_def);
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 								
 							 Putdown_Aleg();
-							 OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+							 OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 								
 						break;
 				}
-					  	 /*每次旋转结束后都将机体坐标系下的位置向量设置为初始站立状态下的位置*/
+					  	 /*每次旋转结束后都将机体坐标系下的位置向量设置为初始站立状态下的位置
+				         来使机体方向旋转到跟初始状态一样*/
 					     set_position(&P1_body ,Foot_1_Stand_X, Foot_1_Stand_Y, Foot_1_Stand_Z);
 							 set_position(&P2_body, Foot_2_Stand_X, Foot_2_Stand_Y, Foot_2_Stand_Z);
 							 set_position(&P3_body, Foot_3_Stand_X, Foot_3_Stand_Y, Foot_3_Stand_Z);
@@ -880,4 +881,41 @@ void Turn_Around(int direction, float angle, unsigned int counts )
 		
 }
 
+/*********************************************************************************************************
+*	函 数 名: Shake_Head
+*	功能说明: 摇头动作
+*	形    参：
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void Shake_Head(int direction)
+{
+//      unsigned int   c;
+	    OS_ERR       err;
+      
+	    switch(direction)
+			{
+				//逆时针--头向左
+				case DIRECTION_CC:
+					   HEAD_OUT += HEAD_STEP; 
+					break;
+				//顺时针--头向右
+				case DIRECTION_C:
+					   HEAD_OUT -= HEAD_STEP; 
+					break;
+			}
+
+//			if(HEAD_OUT < HEAD_LEFT_MARGIN )
+//			{
+//				 HEAD_OUT = HEAD_LEFT_MARGIN;
+//			}
+//			if( HEAD_OUT > HEAD_RIGHT_MARGIN)
+//			{
+//				 HEAD_OUT = HEAD_RIGHT_MARGIN;
+//			}
+				
+    	OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
+				
+		
+}
 /***************************** 阿波罗科技 www.apollorobot.cn (END OF FILE) *********************************/

@@ -17,14 +17,6 @@
 
 #include "bsp.h"
 
-	/*
-		安富莱STM32-V5 开发板LED口线分配：
-			LD1     : PI10/TP_NCS          (低电平点亮，高电平熄灭)
-			LD2     : PF7/NRF24L01_CSN     (低电平点亮，高电平熄灭)
-			LD3     : PF8/SF_CS            (低电平点亮，高电平熄灭)
-			LD4     : PC2/NRF905_CSN/VS1053_XCS  (低电平点亮，高电平熄灭)
-	*/
-
 	/* 按键口对应的RCC时钟 */
 	#define RCC_ALL_LED 	RCC_AHB1Periph_GPIOE
 

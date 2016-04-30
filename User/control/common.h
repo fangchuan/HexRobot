@@ -56,9 +56,13 @@
 #define ANGLE_MAX   225
 #define ANGLE_MIN   0
 #define PARAMETER            (float)((PWM_MAX-PWM_MIN)/ANGLE_MAX) 
+#define HEAD_LEFT_MARGIN   1000
+#define HEAD_RIGHT_MARGIN  2000
+#define HEAD_STEP          100
+
+
 #define DEGREE_TO_RAD        (float)0.017453292519943295769236907684886
 #define RAD_TO_DEGREE        (float)57.295779513082320876798154814105
-
 #define min(a,b)             ((a)<(b)?(a):(b))
 #define max(a,b)             ((a)>(b)?(a):(b))
 #define constrain(amt,low,high)   ((amt)<(low)?(low):((amt)>(high)?(high):(amt)))
@@ -124,9 +128,9 @@
 //机器人控制模式
 //
 typedef enum _CONTROLMODE{
-	            NRF_MODE = 0,
-	            ANDROID_MODE = 1,
-	            PC_MODE = 2,
+	            NRF_MODE = 1,
+	            ANDROID_MODE = 2,
+	            PC_MODE = 3,
 	
 }_ControlMode;
 //
@@ -199,13 +203,17 @@ typedef struct _Matrix3f
 } Matrix3f;
 
 //
-//描述机体超声波探测到的距离
+//描述机体传感器的数据结构
 //
 typedef struct {
-	      float left_distance;
-	      float right_distance;
+	      int    candela_1;   //1号传感器的光强
+	      int    candela_2;   //2
+	      int    candela_3;   //3
+	      int    candela_4;   //4
+	      float left_distance; //左侧超声波距离
+	      float right_distance;//右侧
    
-}_Ultrasnio;
+}_Sensor;
 extern int issafe(int value, int min, int max);
 extern float constrain_180(float error_angle);
 extern void update_DCM(float angle, Matrix3f* m);

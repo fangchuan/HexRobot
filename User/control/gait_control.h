@@ -40,7 +40,8 @@
 #define ANKLE_5_OUT  TIM4->CCR1
 #define ANKLE_6_OUT  TIM4->CCR2
 
-
+#define HEAD_OUT     TIM2->CCR3
+#define TAIL_OUT     TIM2->CCR4
 
 
 extern void Lift_down_legx(u8  leg_id);
@@ -49,6 +50,7 @@ extern void Stand_Up(void);
 extern void Go_Straight(float yaw, float duty, float stride, int steps);
 extern void Stamp(int counts);
 extern void Turn_Around(int direction, float angle, unsigned int counts );
+extern void Shake_Head(int direction);
 
 #endif
 
