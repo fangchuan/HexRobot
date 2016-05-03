@@ -25,7 +25,7 @@
 #define  ECHO_2_PinSource        GPIO_PinSource15
 #define  ULTRASNIO_PORT          GPIOB
 #define  ULTRASNIO_AF_TIM        GPIO_AF_TIM12
-#define  NVIC_ULTRASNIO_PP       14
+#define  NVIC_ULTRASNIO_PP       12
 #define  NVIC_ULTRASNIO_SP       0
 
 #define US_1_ECHO_CHANNEL        TIM_Channel_1

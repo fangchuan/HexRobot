@@ -89,10 +89,12 @@ static  CPU_STK  AppTaskSensorStk[APP_CFG_TASK_SENSOR_STK_SIZE];
 static  OS_TCB   AppTaskRobotTCB;
 static  CPU_STK  AppTaskRobotStk[APP_CFG_TASK_ROBOT_STK_SIZE];
 
+static  OS_TCB   AppTaskAutoControlTCB;
+static  CPU_STK  AppTaskAutoControlStk[APP_CFG_TASK_AUTOCONTROL_STK_SIZE];
 
 //static  OS_SEM     	SEM_NRFRX;	   //用于NRF接收数据
 
-static _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
+volatile _nrf_pkt   nrf_receiver_buffer;  //NRF数据包缓存
 static _Order     _order = STOP;     //nrf命令类型
 static uint8_t android_order[PROTOCOL_MAXLENGTH];//Android命令数据报
 static _ControlMode  manual_mode ;
@@ -224,7 +226,7 @@ static void _cbOfTmr1(OS_TMR *p_tmr, void *p_arg)
     (void)p_arg;
     
 	   timestamp_route_init ++;
-		 if(timestamp_route_init >= 44)
+		 if(timestamp_route_init >= 46)
 		 {
 			  OSTmrDel(&Tmr_1s, &err); 
 			  bsp_LedOff(LED0);
@@ -291,6 +293,54 @@ static  void  AppTaskStart (void *p_arg)
 }
 /*
 *********************************************************************************************************
+*	函 数 名: AppTaskUserIF
+*	功能说明: 此任务主要用于得到按键的键值。
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*	优 先 级: 6
+*********************************************************************************************************
+*/
+static void AppTaskUserIF(void *p_arg)
+{
+	uint8_t ucKeyCode;
+  OS_ERR        err;
+	uint8_t down_count =0;
+	(void)p_arg;	               /* 避免编译器报警 */
+
+	while (1) 
+	{   	
+        
+				ucKeyCode = GetKeyState();
+				
+				if (ucKeyCode == KEY_STATE_DOWN)
+				{ //等待按键弹起
+					while(GetKeyState() == KEY_STATE_DOWN);
+					
+					down_count ++;
+					if(down_count == 1)
+					{
+						manual_mode = NRF_MODE;
+					}
+					if(down_count == 2)
+					{
+						manual_mode = ANDROID_MODE;
+					}
+					if(down_count == 3)
+					{
+						manual_mode = PC_MODE;
+					}
+					if(down_count == 4)
+					{
+						manual_mode = AUTO_MODE;
+						down_count = 0;
+					}
+				}
+	
+        OSTimeDlyHMSM(0, 0, 0, 20,OS_OPT_TIME_HMSM_STRICT, &err);	   
+	}
+}
+/*
+*********************************************************************************************************
 *	函 数 名: AppTaskCom
 *	功能说明: LED闪烁
 *	形    参: p_arg 是在创建该任务时传递的形参
@@ -308,7 +358,6 @@ static void AppTaskCOM(void *p_arg)
 	{
 		  if(manual_mode == ANDROID_MODE)
 			{
-//		DispTaskInfo();
 		
 		  //如果成功接收到一帧命令,则执行以下解析操作
 				if(!get_order_from_uart(android_order))
@@ -347,58 +396,12 @@ static void AppTaskCOM(void *p_arg)
 		   }
 			 bsp_LedOff(LED0);
 			 bsp_LedOff(LED2);
+			 bsp_LedOff(LED3);
 			 bsp_LedToggle(LED1);
 		 }
 			
 			OSTimeDlyHMSM(0, 0, 0, 50,OS_OPT_TIME_HMSM_STRICT, &err);		
 	} 						  	 	       											   
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: AppTaskUserIF
-*	功能说明: 此任务主要用于得到按键的键值。
-*             1. 按下K1按键打印任务执行情况
-*             2. 按下K2按键进行截图，保存BMP图片到SD卡中
-*	形    参: p_arg 是在创建该任务时传递的形参
-*	返 回 值: 无
-*	优 先 级: 6
-*********************************************************************************************************
-*/
-static void AppTaskUserIF(void *p_arg)
-{
-	uint8_t ucKeyCode;
-  OS_ERR        err;
-	uint8_t down_count =0;
-	(void)p_arg;	               /* 避免编译器报警 */
-
-	while (1) 
-	{   	
-        
-				ucKeyCode = GetKeyState();
-				
-				if (ucKeyCode == KEY_STATE_DOWN)
-				{ //等待按键弹起
-					while(GetKeyState() == KEY_STATE_DOWN);
-					
-					down_count ++;
-					if(down_count == 1)
-					{
-						manual_mode = NRF_MODE;
-					}
-					if(down_count == 2)
-					{
-						manual_mode = ANDROID_MODE;
-					}
-					if(down_count == 3)
-					{
-						manual_mode = PC_MODE;
-						down_count = 0;
-					}
-				}
-	
-        OSTimeDlyHMSM(0, 0, 0, 20,OS_OPT_TIME_HMSM_STRICT, &err);	   
-	}
 }
 
 /*
@@ -478,12 +481,63 @@ static  void  AppTaskNrfReceiver (void)
             }
 						bsp_LedOff(LED1);
 						bsp_LedOff(LED2);
+						bsp_LedOff(LED3);
 						bsp_LedToggle(LED0);
 //			  OSSemPost(&SEM_NRFRX, OS_OPT_POST_1, &err);
 				}	
 				
 				OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
 	}				
+}
+/*
+*********************************************************************************************************
+*	函 数 名: AppTaskAutoControl
+*	功能说明: 自动控制任务任务
+*	形    参: p_arg 是在创建该任务时传递的形参
+*	返 回 值: 无
+*	优 先 级: 4
+*********************************************************************************************************
+*/
+static void AppTaskAutoControl(void *p_arg)
+{
+	  OS_ERR    err;
+	  (void )p_arg;
+	
+		while(1)
+		{
+			if(manual_mode == AUTO_MODE)
+			{
+				
+				if(sensor.left_distance > SAFE_ULTRASNIO_DISTANCE && sensor.right_distance > SAFE_ULTRASNIO_DISTANCE )
+				{
+					 _order  = GO_FORWARD;
+				}
+				else{
+						if(sensor.left_distance <= SAFE_ULTRASNIO_DISTANCE && sensor.right_distance <= SAFE_ULTRASNIO_DISTANCE)
+						{
+							 _order = GO_BACKWARD;
+						}
+						else{
+								if(sensor.left_distance <= SAFE_ULTRASNIO_DISTANCE && sensor.right_distance > SAFE_ULTRASNIO_DISTANCE)
+								{
+									 _order = TURN_RIGHT;
+								}
+								else{
+								if(sensor.left_distance > SAFE_ULTRASNIO_DISTANCE && sensor.right_distance <= SAFE_ULTRASNIO_DISTANCE)
+								{
+									 _order = TURN_LEFT;
+								}
+							}
+					 }
+				}
+				bsp_LedOff(LED0);
+				bsp_LedOff(LED1);
+				bsp_LedOff(LED2);
+				bsp_LedToggle(LED3);
+			}
+			
+			OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
+		}
 }
 /*
 *********************************************************************************************************
@@ -576,7 +630,7 @@ static void AppTaskRobotControl(void *p_arg)
 					break;
 			}
 		  
-	  	OSTimeDlyHMSM(0, 0, 0, 100, OS_OPT_TIME_HMSM_STRICT, &err);	
+	  	OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);	
 	} 						  	 	       											   
 }
 
@@ -648,6 +702,20 @@ static  void  AppTaskCreate (void)
 										 (CPU_STK      *)&AppTaskSensorStk[0],
 										 (CPU_STK_SIZE  )APP_CFG_TASK_SENSOR_STK_SIZE / 10,
 										 (CPU_STK_SIZE  )APP_CFG_TASK_SENSOR_STK_SIZE,
+										 (OS_MSG_QTY    )0,
+										 (OS_TICK       )0,
+										 (void         *)0,
+										 (OS_OPT        )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
+										 (OS_ERR       *)&err);
+		  /**************创建自动控制任务*********************/
+			OSTaskCreate((OS_TCB       *)&AppTaskAutoControlTCB,             
+										 (CPU_CHAR     *)"App Task AutoControl",
+										 (OS_TASK_PTR   )AppTaskAutoControl, 
+										 (void         *)0,
+										 (OS_PRIO       )APP_CFG_TASK_AUTOCONTROL_PRIO,
+										 (CPU_STK      *)&AppTaskAutoControlStk[0],
+										 (CPU_STK_SIZE  )APP_CFG_TASK_AUTOCONTROL_STK_SIZE / 10,
+										 (CPU_STK_SIZE  )APP_CFG_TASK_AUTOCONTROL_STK_SIZE,
 										 (OS_MSG_QTY    )0,
 										 (OS_TICK       )0,
 										 (void         *)0,

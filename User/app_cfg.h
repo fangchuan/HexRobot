@@ -37,6 +37,7 @@
 #define  APP_CFG_TASK_USER_IF_PRIO                            6u
 #define  APP_CFG_TASK_ROBOT_PRIO                              2u
 #define  APP_CFG_TASK_SENSOR_PRIO                             3u
+#define  APP_CFG_TASK_AUTOCONTROL_PRIO                        4u
 /*
 *********************************************************************************************************
 *                                            TASK STACK SIZES
@@ -50,7 +51,7 @@
 #define  APP_CFG_TASK_USER_IF_STK_SIZE                    256u
 #define  APP_CFG_TASK_SENSOR_STK_SIZE                     256u
 #define  APP_CFG_TASK_ROBOT_STK_SIZE                      1024u
-
+#define  APP_CFG_TASK_AUTOCONTROL_STK_SIZE                256u
 
 /*
 *********************************************************************************************************

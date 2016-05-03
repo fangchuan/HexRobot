@@ -71,7 +71,7 @@ static void TIM12_PWMInCap_Init(void)
 		TIM_TimeBaseStructure.TIM_Prescaler = 167 ; 	//我的主频跑到72Mhz，预分频器72分频=1Mhz，1us计一个数   
 		TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; //不分频
 		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIM向上计数模式
-		TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStructure); //初始化TIM8参数
+		TIM_TimeBaseInit(TIM12, &TIM_TimeBaseStructure); //初始化TIM8参数
 	 
 		//初始化TIM12输入捕获参数,PB14
 		TIM12_ICInitStructure.TIM_Channel = US_1_ECHO_CHANNEL; 
@@ -103,7 +103,7 @@ static void Ultrasnio_Port_Init(void)
 
 			/* 配置GPIO */
 			GPIO_InitStructure.GPIO_Pin = ULTRASNIO_ECHO_1 | ULTRASNIO_ECHO_2;	/* 带入的形参 */
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 			GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 			GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN ;

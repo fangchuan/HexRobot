@@ -128,9 +128,11 @@
 //机器人控制模式
 //
 typedef enum _CONTROLMODE{
+	            
 	            NRF_MODE = 1,
 	            ANDROID_MODE = 2,
 	            PC_MODE = 3,
+	            AUTO_MODE = 4,
 	
 }_ControlMode;
 //
@@ -205,6 +207,7 @@ typedef struct _Matrix3f
 //
 //描述机体传感器的数据结构
 //
+#define  SAFE_ULTRASNIO_DISTANCE    25     //超声波安全距离
 typedef struct {
 	      int    candela_1;   //1号传感器的光强
 	      int    candela_2;   //2

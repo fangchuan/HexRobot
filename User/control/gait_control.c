@@ -914,8 +914,10 @@ void Shake_Head(int direction)
 //				 HEAD_OUT = HEAD_RIGHT_MARGIN;
 //			}
 				
-    	OSTimeDlyHMSM(0,0,0, 250,OS_OPT_TIME_DLY, &err);
-				
+    	OSTimeDlyHMSM(0,0,0, 200,OS_OPT_TIME_DLY, &err);
 		
 }
+
+
+
 /***************************** °¢²¨ÂÞ¿Æ¼¼ www.apollorobot.cn (END OF FILE) *********************************/

@@ -25,7 +25,7 @@
 */
 int issafe(int value, int min, int max)
 {
-    int val = (int)value;	 
+    int val = value;	 
 	  if(val < min || val > max)
 			return -1;
 	  else
